@@ -11,7 +11,9 @@ int myFunction(int, int);
 
 void setup() {
   // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Wire.begin();
+  Serial.begin(9600);
+  Serial.println("Hello World");
 }
 
 void loop() {
