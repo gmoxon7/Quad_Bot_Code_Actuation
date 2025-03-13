@@ -29,6 +29,7 @@
 #define EN_PIN 20 //output that turns on a range of chips on the control board, output
 #define NRESET 21 //reset pin to the I2C multiplexer, output
 #define SERVO_REG_ENABLE 22 //enable pin for the servo regulator, output
+
 #define PACK_SNS 23 //pack sense input, input
 
 
@@ -40,17 +41,22 @@ void setup() {
 pinMode(PRE_DSG_EN, OUTPUT);
 pinMode(DSG_EN, OUTPUT);  
 pinMode(CHG_EN, OUTPUT);
+
 pinMode(STROBE, OUTPUT);
 pinMode(CS_1, OUTPUT);
 pinMode(CS_2, OUTPUT);
 pinMode(CS_3, OUTPUT);
 pinMode(CS_4, OUTPUT);
 pinMode(INHIBIT, OUTPUT);
+
 pinMode(NFAULT, INPUT);
 pinMode(RDY, INPUT);
+
 pinMode(EN_PIN, OUTPUT);
 pinMode(NRESET, OUTPUT);
+
 pinMode(SERVO_REG_ENABLE, OUTPUT);
+
 pinMode(PACK_SNS, INPUT);
 
 //setting pin  positions for startup
