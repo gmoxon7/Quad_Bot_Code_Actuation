@@ -70,7 +70,7 @@ digitalWrite(CS_3, LOW);
 digitalWrite(CS_4, LOW);
 digitalWrite(INHIBIT, HIGH);
 digitalWrite(EN_PIN, LOW);
-digitalWrite(NRESET, HIGH);
+digitalWrite(NRESET, LOW);
 digitalWrite(SERVO_REG_ENABLE, LOW);
 
 delay(1000); //delay for the control board to initialize
@@ -95,12 +95,14 @@ delay(1000); //delay for the control board to initialize
 void loop() {
   // put your main code here, to run repeatedly:
 
-  digitalWrite(EN_PIN, HIGH); //turn on the control board interfaces
-  digitalWrite(NRESET, LOW); //t
+  digitalWrite(EN_PIN, HIGH);
+  delay(10); //delay for the Peripheral ICS to initialize
+  digitalWrite(NRESET, HIGH); //Take the I2C multiplexer out of reset
 
 
+  delay(5000);
 
-
+//I2C Scanner
   byte error, address;
   int nDevices;
 
@@ -139,6 +141,7 @@ void loop() {
     Serial.println("done\n");
 
   delay(5000);           // wait 5 seconds for next scan
+  
 }
 
 // put function definitions here:
