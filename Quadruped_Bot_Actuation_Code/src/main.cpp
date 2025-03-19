@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-
 #include <Wire.h>
 //#include <Wire1.h> // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(sc1)
 
@@ -11,6 +10,7 @@
 //#define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
 
 // put function declarations here:
+
 // Function declarations
 #define PRE_DSG_EN 2 //precharge discharge enable
 #define DSG_EN 3  //discharge enable
@@ -32,7 +32,8 @@
 
 #define PACK_SNS 23 //pack sense input, input
 
-
+unsigned char ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
+unsigned char I2C_OPERATION = 0x01; //I2C operation to select channel 0
 
 void setup() {
   // put your setup code here, to run once:
@@ -75,76 +76,84 @@ digitalWrite(SERVO_REG_ENABLE, LOW);
 
 delay(1000); //delay for the control board to initialize
 
-  Wire.begin(); //initialize the i2c bus
-  Wire1.begin(); //initialize the second i2c bus
-  
-  
-  
   Serial.begin(9600);
+  Wire.begin(); //initialize the i2c bus
+  delay(100);
 
-  delay(15);
-
-  while (!Serial)
-  delay(10);
-  Serial.println("\nI2C Scanner");
- 
-
+  digitalWrite(EN_PIN, HIGH);
+  delay(1000); //delay for the Peripheral ICS to initialize
+  digitalWrite(NRESET, LOW);
+  delay(100);
+  digitalWrite(NRESET, HIGH);
+  delay(100);
 
 }
+
+void I2C_WR(unsigned char ADDRESS, unsigned char I2C_OPERATION)
+{
+  Wire.beginTransmission(ADDRESS);
+  Wire.write(I2C_OPERATION);
+  Wire.endTransmission();
+}
+//note the lack of data obviously because that is what we are getting in this process.
+unsigned char I2C_RD(unsigned char ADDRESS)
+{
+  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
+  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
+  //The number of bytes requested. queues the stop bit.
+  Wire.requestFrom(ADDRESS,1);
+
+  while(!Wire.available())
+  {
+  }
+  
+  
+  return Wire.read();
+}
+
+
+
+
 
 void loop() {
   // put your main code here, to run repeatedly:
 
-  digitalWrite(EN_PIN, HIGH);
-  delay(10); //delay for the Peripheral ICS to initialize
-  digitalWrite(NRESET, HIGH); //Take the I2C multiplexer out of reset
 
+  //I2C_WR(0x70,0x01); //Select the I2C multiplexer
 
-  delay(5000);
+  delay(10);
 
-//I2C Scanner
-  byte error, address;
-  int nDevices;
+ // Serial.print("   I2C Multiplexer is working?    ");
+ Serial.print(I2C_RD(0x70),HEX);
 
-  Serial.println("Scanning...");
-
-  nDevices = 0;
-  for(address = 1; address < 127; address++ )
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    WIRE.beginTransmission(address);
-    error = WIRE.endTransmission();
-
-    if (error == 0)
-    {
-      Serial.print("I2C device found at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.print(address,HEX);
-      Serial.println("  !");
-
-      nDevices++;
-    }
-    else if (error==4)
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address<16)
-        Serial.print("0");
-      Serial.println(address,HEX);
-    }
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
-
-  delay(5000);           // wait 5 seconds for next scan
-  
 }
 
 // put function definitions here:
 
 //This Function is a basic i2c function for controlling the motor driver
 
+
+/*
+void I2C_CNTRL_WR(byte ADDRESS, byte REG_ADDRESS, byte OPERATION)
+{
+  Wire.beginTransmission(ADDRESS);
+  Wire.write(REG_ADDRESS);
+  Wire.write(OPERATION);
+  Wire.endTransmission();
+}
+//note the lack of data obviously because that is what we are getting in this process.
+byte I2C_CNTRL_RD(byte ADDRESS, byte REG_ADDRESS)
+{
+  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
+  Wire.write(REG_ADDRESS);
+  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
+  //The number of bytes requested. queues the stop bit.
+  Wire.requestFrom(ADDRESS,1);
+
+  while(!Wire.available())
+  {
+  }
+  
+  
+  return Wire.read();
+}*/
