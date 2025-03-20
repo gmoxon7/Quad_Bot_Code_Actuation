@@ -78,6 +78,7 @@ delay(1000); //delay for the control board to initialize
 
   Serial.begin(9600);
   Wire.begin(); //initialize the i2c bus
+  Wire.setClock(100000); // Set I2C clock to 100 kHz
   delay(100);
 
   digitalWrite(EN_PIN, HIGH);
