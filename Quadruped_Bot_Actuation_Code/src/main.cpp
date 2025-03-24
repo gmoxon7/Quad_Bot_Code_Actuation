@@ -78,7 +78,9 @@ delay(1000); //delay for the control board to initialize
 
   Serial.begin(9600);
   Wire.begin(); //initialize the i2c bus
-  Wire.setClock(100000); // Set I2C clock to 100 kHz
+  while (!Serial)
+     delay(10);
+  Serial.println("\nI2C Scanner");
   delay(100);
 
   digitalWrite(EN_PIN, HIGH);
@@ -128,33 +130,3 @@ void loop() {
  Serial.print(I2C_RD(0x70),HEX);
 
 }
-
-// put function definitions here:
-
-//This Function is a basic i2c function for controlling the motor driver
-
-
-/*
-void I2C_CNTRL_WR(byte ADDRESS, byte REG_ADDRESS, byte OPERATION)
-{
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(REG_ADDRESS);
-  Wire.write(OPERATION);
-  Wire.endTransmission();
-}
-//note the lack of data obviously because that is what we are getting in this process.
-byte I2C_CNTRL_RD(byte ADDRESS, byte REG_ADDRESS)
-{
-  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
-  Wire.write(REG_ADDRESS);
-  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
-  //The number of bytes requested. queues the stop bit.
-  Wire.requestFrom(ADDRESS,1);
-
-  while(!Wire.available())
-  {
-  }
-  
-  
-  return Wire.read();
-}*/
