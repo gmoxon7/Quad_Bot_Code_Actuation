@@ -9,9 +9,6 @@
 #define WIRE Wire // for teensy 4.0 this is the i2c library on pins 18(sda) and 19(scl)
 //#define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
 
-// put function declarations here:
-
-// Function declarations
 #define PRE_DSG_EN 2 //precharge discharge enable
 #define DSG_EN 3  //discharge enable
 #define CHG_EN 4  //charge enable
@@ -34,6 +31,52 @@
 
 unsigned char ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
 unsigned char I2C_OPERATION = 0x01; //I2C operation to select channel 0
+
+uint8_t channel = 0; //SPI multiplexer channel number 0 default
+// put function declarations here:
+//Functions
+
+void I2C_WR(unsigned char ADDRESS, unsigned char I2C_OPERATION)
+{
+  Wire.beginTransmission(ADDRESS);
+  Wire.write(I2C_OPERATION);
+  Wire.endTransmission();
+}
+//note the lack of data obviously because that is what we are getting in this process.
+unsigned char I2C_RD(unsigned char ADDRESS)
+{
+  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
+  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
+  //The number of bytes requested. queues the stop bit.
+  Wire.requestFrom(ADDRESS,1);
+
+  while(!Wire.available())
+  {
+  }
+  
+  
+  return Wire.read();
+}
+
+void SPI_CS_MUX(uint8_t newChannel)
+ {
+  //This function selects the channel on the SPI multiplexer
+  //The channel is selected by setting the CS pins to the binary value of the channel number
+  //The 4 CS pins are passed through a mux to get 16 outputs.
+  if (newChannel > 15) {
+    Serial.println("Error: Invalid channel requested! Must be between 0 and 15");
+  return; // invalid channel number
+  }
+  channel = newChannel;
+   // Set the multiplexer control pins based on the channel
+   digitalWrite(CS_1, channel & 0x01);       // LSB
+   digitalWrite(CS_2, (channel >> 1) & 0x01);
+   digitalWrite(CS_3, (channel >> 2) & 0x01);
+   digitalWrite(CS_4, (channel >> 3) & 0x01); // MSB
+
+}
+
+// put setup code here, to run once:
 
 void setup() {
   // put your setup code here, to run once:
@@ -80,53 +123,46 @@ delay(1000); //delay for the control board to initialize
   Wire.begin(); //initialize the i2c bus
   while (!Serial)
      delay(10);
-  Serial.println("\nI2C Scanner");
+  Serial.println("\nI2C Initialized");
   delay(100);
+  SPI.begin(); //initialize the SPI bus
+  delay(100);
+  Serial.println("\nSPI Initialized");
 
   digitalWrite(EN_PIN, HIGH);
-  delay(1000); //delay for the Peripheral ICS to initialize
+  delay(10); //delay for the Peripheral ICS to initialize
   digitalWrite(NRESET, LOW);
-  delay(100);
+  delay(10);
   digitalWrite(NRESET, HIGH);
-  delay(100);
+  delay(10);
 
 }
-
-void I2C_WR(unsigned char ADDRESS, unsigned char I2C_OPERATION)
-{
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(I2C_OPERATION);
-  Wire.endTransmission();
-}
-//note the lack of data obviously because that is what we are getting in this process.
-unsigned char I2C_RD(unsigned char ADDRESS)
-{
-  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
-  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
-  //The number of bytes requested. queues the stop bit.
-  Wire.requestFrom(ADDRESS,1);
-
-  while(!Wire.available())
-  {
-  }
-  
-  
-  return Wire.read();
-}
-
 
 
 
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-
-  //I2C_WR(0x70,0x01); //Select the I2C multiplexer
+//I2C multiplexer channel select and read code.
+/*
+  I2C_WR(0x70,0x00); //Select the I2C multiplexer
 
   delay(10);
 
- // Serial.print("   I2C Multiplexer is working?    ");
- Serial.print(I2C_RD(0x70),HEX);
+  Serial.print("\nI2C Multiplexer Channels: ");
+  Serial.print(I2C_RD(0x70),HEX);
+*/
 
+SPI_CS_MUX(5); // Select the SPI multiplexer channel 5
+  Serial.print("Selected channel: ");
+  Serial.println(channel); // Should print 5
+
+  delay(1000);
+
+  SPI_CS_MUX(0); // Select the SPI multiplexer channel 10
+  Serial.print("Selected channel: ");
+  Serial.println(channel); // Should print 10
+
+  delay(1000);
 }
+
