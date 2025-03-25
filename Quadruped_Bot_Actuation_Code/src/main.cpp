@@ -32,8 +32,9 @@
 unsigned char ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
 unsigned char I2C_OPERATION = 0x01; //I2C operation to select channel 0
 
-uint8_t channel = 0; //SPI multiplexer channel number 0 default
+uint8_t MUX_channel = 0; //SPI multiplexer channel number 0 default
 // put function declarations here:
+
 //Functions
 
 void I2C_WR(unsigned char ADDRESS, unsigned char I2C_OPERATION)
@@ -67,14 +68,36 @@ void SPI_CS_MUX(uint8_t newChannel)
     Serial.println("Error: Invalid channel requested! Must be between 0 and 15");
   return; // invalid channel number
   }
-  channel = newChannel;
+  MUX_channel = newChannel;
    // Set the multiplexer control pins based on the channel
-   digitalWrite(CS_1, channel & 0x01);       // LSB
-   digitalWrite(CS_2, (channel >> 1) & 0x01);
-   digitalWrite(CS_3, (channel >> 2) & 0x01);
-   digitalWrite(CS_4, (channel >> 3) & 0x01); // MSB
+   digitalWrite(CS_1, MUX_channel & 0x01);       // LSB
+   digitalWrite(CS_2, (MUX_channel >> 1) & 0x01);
+   digitalWrite(CS_3, (MUX_channel >> 2) & 0x01);
+   digitalWrite(CS_4, (MUX_channel >> 3) & 0x01); // MSB
 
 }
+
+void ACTIVATE_MUX(uint8_t SPI_channel){
+// Select the desired channel
+SPI_CS_MUX(SPI_channel);
+
+// Latch the selected channel
+digitalWrite(STROBE, HIGH);
+delay(10); // Small delay for stability
+digitalWrite(STROBE, LOW);
+delay(10); // Small delay for stability
+
+// Enable the multiplexer outputs
+digitalWrite(INHIBIT, LOW);
+
+
+}
+
+void DEACTIVATE_MUX() {
+  // Disable all multiplexer outputs
+  digitalWrite(INHIBIT, HIGH);
+}
+
 
 // put setup code here, to run once:
 
@@ -153,16 +176,23 @@ void loop() {
   Serial.print(I2C_RD(0x70),HEX);
 */
 
-SPI_CS_MUX(5); // Select the SPI multiplexer channel 5
-  Serial.print("Selected channel: ");
-  Serial.println(channel); // Should print 5
+ACTIVATE_MUX(5); // Select and activate channel 5
+  Serial.println("Multiplexer activated on channel 5");
+  delay(1000); // Wait for 1 second
 
-  delay(1000);
+  // Deactivate the multiplexer
+  DEACTIVATE_MUX(); // Disable all multiplexer outputs
+  Serial.println("Multiplexer deactivated");
+  delay(1000); // Wait for 1 second
 
-  SPI_CS_MUX(0); // Select the SPI multiplexer channel 10
-  Serial.print("Selected channel: ");
-  Serial.println(channel); // Should print 10
+  // Activate the multiplexer on channel 10
+  ACTIVATE_MUX(10); // Select and activate channel 10
+  Serial.println("Multiplexer activated on channel 10");
+  delay(1000); // Wait for 1 second
 
-  delay(1000);
+  // Deactivate the multiplexer again
+  DEACTIVATE_MUX();
+  Serial.println("Multiplexer deactivated");
+  delay(1000); // Wait for 1 second
 }
 
