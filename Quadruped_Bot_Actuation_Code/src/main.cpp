@@ -82,13 +82,13 @@ void ACTIVATE_MUX(uint8_t SPI_channel){
 SPI_CS_MUX(SPI_channel);
 
 // Latch the selected channel
-digitalWrite(STROBE, HIGH);
-delay(10); // Small delay for stability
-digitalWrite(STROBE, LOW);
-delay(10); // Small delay for stability
+digitalWrite(STROBE, HIGH); //allows registers to output current input logic
+delay(1); // Small delay for stability
+digitalWrite(STROBE, LOW); // latches the outputs to last input logic, preventing change during transmission
+delay(1); // Small delay for stability
 
 // Enable the multiplexer outputs
-digitalWrite(INHIBIT, LOW);
+digitalWrite(INHIBIT, LOW); //outputs latched logic
 
 
 }
@@ -96,6 +96,32 @@ digitalWrite(INHIBIT, LOW);
 void DEACTIVATE_MUX() {
   // Disable all multiplexer outputs
   digitalWrite(INHIBIT, HIGH);
+}
+
+
+uint16_t readEncoderPosition(uint8_t channel) {
+  uint16_t position = 0;
+
+  // Activate the multiplexer for the desired channel
+  ACTIVATE_MUX(channel);// puts strobe in the correct state latches the outputs to the last input logic
+
+  // Start SPI transaction with SPI Mode 0
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+
+  // Send dummy bytes and read the 16-bit response
+    position = SPI.transfer16(0x0000); // Send dummy data and receive 16 bits
+  
+
+  // End SPI transaction
+  SPI.endTransaction();
+
+  // Deactivate the multiplexer
+  DEACTIVATE_MUX();
+
+  // Extract the 12-bit position (ignore the last 4 bits)
+  position = position >> 4;
+
+  return position;
 }
 
 
@@ -176,23 +202,41 @@ void loop() {
   Serial.print(I2C_RD(0x70),HEX);
 */
 
-ACTIVATE_MUX(5); // Select and activate channel 5
-  Serial.println("Multiplexer activated on channel 5");
-  delay(1000); // Wait for 1 second
+  // ACTIVATE_MUX(5); // Select and activate channel 5
+  // Serial.println("Multiplexer activated on channel 5");
+  // delay(3000); // Wait for 3 second
 
-  // Deactivate the multiplexer
-  DEACTIVATE_MUX(); // Disable all multiplexer outputs
-  Serial.println("Multiplexer deactivated");
-  delay(1000); // Wait for 1 second
+  // // Deactivate the multiplexer
+  // DEACTIVATE_MUX(); // Disable all multiplexer outputs
+  // Serial.println("Multiplexer deactivated");
+  // delay(3000); // Wait for 3 second
 
-  // Activate the multiplexer on channel 10
-  ACTIVATE_MUX(10); // Select and activate channel 10
-  Serial.println("Multiplexer activated on channel 10");
-  delay(1000); // Wait for 1 second
+  // // Activate the multiplexer on channel 10
+  // ACTIVATE_MUX(10); // Select and activate channel 10
+  // Serial.println("Multiplexer activated on channel 10");
+  // delay(3000); // Wait for 3 second
 
-  // Deactivate the multiplexer again
-  DEACTIVATE_MUX();
-  Serial.println("Multiplexer deactivated");
-  delay(1000); // Wait for 1 second
+  // // Deactivate the multiplexer again
+  // DEACTIVATE_MUX();
+  // Serial.println("Multiplexer deactivated");
+  // delay(3000); // Wait for 3 second
+
+//testing the SPI encoder 
+ // Read position from encoder on channel 5
+ uint16_t position = readEncoderPosition(5);
+ Serial.print("Encoder position on channel 5: ");
+ Serial.println(position);
+
+ delay(1000); // Wait for 1 second
+
+ // Read position from encoder on channel 10
+ position = readEncoderPosition(10);
+ Serial.print("Encoder position on channel 10: ");
+ Serial.println(position);
+
+ delay(1000); // Wait for 1 second
+
+
+
 }
 
