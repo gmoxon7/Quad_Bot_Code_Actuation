@@ -89,13 +89,14 @@ delay(1); // Small delay for stability
 
 // Enable the multiplexer outputs
 digitalWrite(INHIBIT, LOW); //outputs latched logic
-
+delay(1); // Small delay for stability
 
 }
 
 void DEACTIVATE_MUX() {
   // Disable all multiplexer outputs
   digitalWrite(INHIBIT, HIGH);
+  delay(1); // Small delay for stability
 }
 
 
@@ -222,16 +223,16 @@ void loop() {
   // delay(3000); // Wait for 3 second
 
 //testing the SPI encoder 
- // Read position from encoder on channel 5
- uint16_t position = readEncoderPosition(5);
- Serial.print("Encoder position on channel 5: ");
+ // Read position from encoder on channel 0
+ uint16_t position = readEncoderPosition(0);
+ Serial.print("Encoder position on channel 0: ");
  Serial.println(position);
 
  delay(1000); // Wait for 1 second
 
- // Read position from encoder on channel 10
- position = readEncoderPosition(10);
- Serial.print("Encoder position on channel 10: ");
+ // Read position from encoder on channel 3
+ position = readEncoderPosition(3);
+ Serial.print("Encoder position on channel 3: ");
  Serial.println(position);
 
  delay(1000); // Wait for 1 second
