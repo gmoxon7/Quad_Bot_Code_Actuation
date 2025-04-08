@@ -89,7 +89,7 @@ delay(10); // Small delay for stability
 
 // Enable the multiplexer outputs
 digitalWrite(INHIBIT, LOW); //outputs latched logic
-delayMicroseconds(10); // Small delay for stability
+delayMicroseconds(3); // Small delay for stability
 
 }
 
@@ -110,8 +110,10 @@ uint16_t readEncoderPosition(uint8_t channel) {
   SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
 
   // Send dummy bytes and read the 16-bit response
-    position = SPI.transfer16(0x0000); // Send dummy data and receive 16 bits
-  
+    position = SPI.transfer(0x00) <<8 ; // Send dummy data and receive 8 bits?
+    delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
+    position |= SPI.transfer(0x00);
+    delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
 
   // End SPI transaction
   SPI.endTransaction();
@@ -119,8 +121,9 @@ uint16_t readEncoderPosition(uint8_t channel) {
   // Deactivate the multiplexer
   DEACTIVATE_MUX();
 
-  // Extract the 12-bit position (ignore the last 4 bits)
-  position = position >> 4;
+  // Extract the 12-bit position (ignore the first 2 bits and last 2 bits)
+  position = (position >> 2) & 0x0FFF; // Mask to get the 12-bit value
+  // The position is now in the range of 0 to 4095 (12 bits)
 
   return position;
 }
