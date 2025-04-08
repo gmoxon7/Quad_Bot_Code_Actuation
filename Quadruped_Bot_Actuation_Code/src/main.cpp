@@ -83,20 +83,20 @@ SPI_CS_MUX(SPI_channel);
 
 // Latch the selected channel
 digitalWrite(STROBE, HIGH); //allows registers to output current input logic
-delay(1); // Small delay for stability
+delay(10); // Small delay for stability
 digitalWrite(STROBE, LOW); // latches the outputs to last input logic, preventing change during transmission
-delay(1); // Small delay for stability
+delay(10); // Small delay for stability
 
 // Enable the multiplexer outputs
 digitalWrite(INHIBIT, LOW); //outputs latched logic
-delay(1); // Small delay for stability
+delayMicroseconds(10); // Small delay for stability
 
 }
 
 void DEACTIVATE_MUX() {
   // Disable all multiplexer outputs
   digitalWrite(INHIBIT, HIGH);
-  delay(1); // Small delay for stability
+  delayMicroseconds(3); // Small delay for stability
 }
 
 
@@ -105,9 +105,9 @@ uint16_t readEncoderPosition(uint8_t channel) {
 
   // Activate the multiplexer for the desired channel
   ACTIVATE_MUX(channel);// puts strobe in the correct state latches the outputs to the last input logic
-
-  // Start SPI transaction with SPI Mode 0
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  
+  // Start SPI transaction with SPI Mode 0 and 100kHz clock speed
+  SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
 
   // Send dummy bytes and read the 16-bit response
     position = SPI.transfer16(0x0000); // Send dummy data and receive 16 bits
