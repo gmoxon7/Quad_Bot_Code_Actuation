@@ -105,7 +105,7 @@ uint16_t readEncoderPosition(uint8_t channel) {
 
   // Activate the multiplexer for the desired channel
   ACTIVATE_MUX(channel);// puts strobe in the correct state latches the outputs to the last input logic
-  
+  delayMicroseconds(3); // Small delay to establish cs for amt223cv 
   // Start SPI transaction with SPI Mode 0 and 100kHz clock speed
   SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
 
@@ -117,7 +117,7 @@ uint16_t readEncoderPosition(uint8_t channel) {
 
   // End SPI transaction
   SPI.endTransaction();
-
+delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
   // Deactivate the multiplexer
   DEACTIVATE_MUX();
 
