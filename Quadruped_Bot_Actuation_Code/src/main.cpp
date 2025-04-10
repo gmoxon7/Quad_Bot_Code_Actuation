@@ -37,27 +37,7 @@ uint8_t MUX_channel = 0; //SPI multiplexer channel number 0 default
 
 //Functions
 
-void I2C_WR(unsigned char ADDRESS, unsigned char I2C_OPERATION)
-{
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(I2C_OPERATION);
-  Wire.endTransmission();
-}
-//note the lack of data obviously because that is what we are getting in this process.
-unsigned char I2C_RD(unsigned char ADDRESS)
-{
-  Wire.beginTransmission(ADDRESS); //Starts communicating with the device at 
-  Wire.endTransmission(false); // creates the repeat start bit needed to read from the register
-  //The number of bytes requested. queues the stop bit.
-  Wire.requestFrom(ADDRESS,1);
 
-  while(!Wire.available())
-  {
-  }
-  
-  
-  return Wire.read();
-}
 
 void SPI_CS_MUX(uint8_t newChannel)
  {
