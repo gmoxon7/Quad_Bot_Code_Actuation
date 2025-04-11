@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 //custom header file for I2C functions
+#include "I2C_MUX.h"
 #include "I2C_FCTNS.h"
-
 
 
 #include <Wire.h>
@@ -34,8 +34,8 @@
 
 #define PACK_SNS 23 //pack sense input, input
 
-unsigned char ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
-unsigned char I2C_OPERATION = 0x01; //I2C operation to select channel 0
+unsigned char I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
+
 
 uint8_t MUX_channel = 0; //SPI multiplexer channel number 0 default
 // put function declarations here:
@@ -174,6 +174,9 @@ delay(1000); //delay for the control board to initialize
   digitalWrite(NRESET, HIGH);
   delay(10);
 
+  I2C_DisableAllChannels(I2C_MUX_ADDRESS);
+
+
 }
 
 
@@ -183,15 +186,20 @@ void loop() {
   // put your main code here, to run repeatedly:
 //I2C multiplexer channel select and read code.
 
-  I2C_WR(0x70,0x00); //Select the I2C multiplexer
+ 
 
-  delay(100);
+  
+    // Example: Switch to channel 5
+    I2C_SelectChannel(0x70, 4);
+    delay(2000);
+  
 
-  Serial.print("\nI2C Multiplexer Channels: ");
-  Serial.print(I2C_RD(0x70),HEX);
+    Serial.print("\nI2C Multiplexer Channels: ");
+    Serial.print(I2C_RD(0x70));
 
-
-
+    // Example: Disable all channels
+    //I2C_DisableAllChannels(0x70);
+    
 
 
   // ACTIVATE_MUX(5); // Select and activate channel 5
