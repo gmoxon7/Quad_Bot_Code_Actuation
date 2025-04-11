@@ -1,5 +1,10 @@
 #include <Arduino.h>
 
+//custom header file for I2C functions
+#include "I2C_FCTNS.h"
+
+
+
 #include <Wire.h>
 //#include <Wire1.h> // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(sc1)
 
@@ -177,14 +182,17 @@ delay(1000); //delay for the control board to initialize
 void loop() {
   // put your main code here, to run repeatedly:
 //I2C multiplexer channel select and read code.
-/*
+
   I2C_WR(0x70,0x00); //Select the I2C multiplexer
 
-  delay(10);
+  delay(100);
 
   Serial.print("\nI2C Multiplexer Channels: ");
   Serial.print(I2C_RD(0x70),HEX);
-*/
+
+
+
+
 
   // ACTIVATE_MUX(5); // Select and activate channel 5
   // Serial.println("Multiplexer activated on channel 5");
@@ -207,20 +215,20 @@ void loop() {
 
 //testing the SPI encoder 
  // Read position from encoder on channel 0
- uint16_t position = readEncoderPosition(0);
- Serial.print("Encoder position on channel 0: ");
- Serial.println(position);
+//  uint16_t position = readEncoderPosition(0);
+//  Serial.print("Encoder position on channel 0: ");
+//  Serial.println(position);
 
- delay(1000); // Wait for 1 second
+//  delay(1000); // Wait for 1 second
 
- // Read position from encoder on channel 3
- position = readEncoderPosition(3);
- Serial.print("Encoder position on channel 3: ");
- Serial.println(position);
+//  // Read position from encoder on channel 3
+//  position = readEncoderPosition(3);
+//  Serial.print("Encoder position on channel 3: ");
+//  Serial.println(position);
 
- delay(1000); // Wait for 1 second
+//  delay(1000); // Wait for 1 second
 
 
 
-}
+ }
 
