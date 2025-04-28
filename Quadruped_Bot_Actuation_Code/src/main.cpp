@@ -1,8 +1,13 @@
 #include <Arduino.h>
 
 //custom header file for I2C functions
-#include "I2C_MUX.h"
-#include "I2C_FCTNS.h"
+#include "PinAssignments.h" // Include the pin assignments header file
+
+#include "I2C_FCTNS.h" // Include the I2C functions header file
+#include "I2C_MUX.h"    // Include the I2C multiplexer functions header file
+
+#include "SPI_NCDR_FCTNS.h" // Include the SPI NCDR functions header file
+#include "SPI_MUX.h" // Include the SPI multiplexer functions
 
 
 #include <Wire.h>
@@ -14,105 +19,8 @@
 #define WIRE Wire // for teensy 4.0 this is the i2c library on pins 18(sda) and 19(scl)
 //#define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
 
-#define PRE_DSG_EN 2 //precharge discharge enable
-#define DSG_EN 3  //discharge enable
-#define CHG_EN 4  //charge enable
-
-#define STROBE 5 //strobe signal, This latches multiplexer when low, live update when high
-#define CS_1 6 //Chip select pin numbers to the multiplexer. CS1 is LSB, CS4 is MSB
-#define CS_2 7
-#define CS_3 8
-#define CS_4 9
-#define INHIBIT 10 //INHIBIT is high all outputs on SPI multiplexer are 0 
-
-#define NFAULT 14 //Signal to the L9961 bms chip recieves information  status of the battery pack, input
-#define RDY 15 //RDY interrupt output. will be an input
-
-#define EN_PIN 20 //output that turns on a range of chips on the control board, output
-#define NRESET 21 //reset pin to the I2C multiplexer, output
-#define SERVO_REG_ENABLE 22 //enable pin for the servo regulator, output
-
-#define PACK_SNS 23 //pack sense input, input
 
 unsigned char I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
-
-
-uint8_t MUX_channel = 0; //SPI multiplexer channel number 0 default
-// put function declarations here:
-
-//Functions
-
-
-
-void SPI_CS_MUX(uint8_t newChannel)
- {
-  //This function selects the channel on the SPI multiplexer
-  //The channel is selected by setting the CS pins to the binary value of the channel number
-  //The 4 CS pins are passed through a mux to get 16 outputs.
-  if (newChannel > 15) {
-    Serial.println("Error: Invalid channel requested! Must be between 0 and 15");
-  return; // invalid channel number
-  }
-  MUX_channel = newChannel;
-   // Set the multiplexer control pins based on the channel
-   digitalWrite(CS_1, MUX_channel & 0x01);       // LSB
-   digitalWrite(CS_2, (MUX_channel >> 1) & 0x01);
-   digitalWrite(CS_3, (MUX_channel >> 2) & 0x01);
-   digitalWrite(CS_4, (MUX_channel >> 3) & 0x01); // MSB
-
-}
-
-void ACTIVATE_MUX(uint8_t SPI_channel){
-// Select the desired channel
-SPI_CS_MUX(SPI_channel);
-
-// Latch the selected channel
-digitalWrite(STROBE, HIGH); //allows registers to output current input logic
-delay(10); // Small delay for stability
-digitalWrite(STROBE, LOW); // latches the outputs to last input logic, preventing change during transmission
-delay(10); // Small delay for stability
-
-// Enable the multiplexer outputs
-digitalWrite(INHIBIT, LOW); //outputs latched logic
-delayMicroseconds(3); // Small delay for stability
-
-}
-
-void DEACTIVATE_MUX() {
-  // Disable all multiplexer outputs
-  digitalWrite(INHIBIT, HIGH);
-  delayMicroseconds(3); // Small delay for stability
-}
-
-
-uint16_t readEncoderPosition(uint8_t channel) {
-  uint16_t position = 0;
-
-  // Activate the multiplexer for the desired channel
-  ACTIVATE_MUX(channel);// puts strobe in the correct state latches the outputs to the last input logic
-  delayMicroseconds(3); // Small delay to establish cs for amt223cv 
-  // Start SPI transaction with SPI Mode 0 and 100kHz clock speed
-  SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
-
-  // Send dummy bytes and read the 16-bit response
-    position = SPI.transfer(0x00) <<8 ; // Send dummy data and receive 8 bits?
-    delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
-    position |= SPI.transfer(0x00);
-    delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
-
-  // End SPI transaction
-  SPI.endTransaction();
-delayMicroseconds(3); // Small delay as prescribed by the amt223cv datasheet
-  // Deactivate the multiplexer
-  DEACTIVATE_MUX();
-
-  // Extract the 12-bit position (ignore the first 2 bits and last 2 bits)
-  position = (position >> 2) & 0x0FFF; // Mask to get the 12-bit value
-  // The position is now in the range of 0 to 4095 (12 bits)
-
-  return position;
-}
-
 
 // put setup code here, to run once:
 

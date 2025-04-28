@@ -3,6 +3,7 @@
 // It includes functions to select a specific channel and disable all channels on the multiplexer
 //It has been specified to only use one channel ata time but it is possible to use all at once.
 
+#include "PinAssignments.h"
 #include "I2C_MUX.h"
 #include "I2C_FCTNS.h" // Include the I2C_FCTNS header file
 
