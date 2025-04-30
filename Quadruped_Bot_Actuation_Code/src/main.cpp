@@ -83,7 +83,22 @@ delay(1000); //delay for the control board to initialize
   delay(10);
 
   I2C_DisableAllChannels(I2C_MUX_ADDRESS);
-
+  resetEncoder(0);
+  resetEncoder(1);
+  resetEncoder(2);
+  resetEncoder(3);
+  resetEncoder(4);
+  resetEncoder(5);
+  resetEncoder(6);
+  resetEncoder(7);
+  resetEncoder(8);
+  resetEncoder(9);
+  resetEncoder(10);
+  resetEncoder(11);
+  resetEncoder(12);
+  resetEncoder(13);
+  resetEncoder(14);
+  resetEncoder(15);
 
 }
 
@@ -113,21 +128,28 @@ void loop() {
   
 //testing the SPI encoder 
 //Read position from encoder on channel 0
+
+
+delay(3000); // Wait for 3 second
+
+
   position = readEncoderPosition(0);
   Serial.print("Encoder position on channel 0: ");
   Serial.println(position);
 
-  delay(1000); // Wait for 1 second
+  delay(1000); // Wait for 5 second
+  
 
-  resetEncoder(0);
-  delay(1000);
+  // Test turns counting on channel 0
+  int16_t turns = readTurns(0); // Read the number of turns on channel 0
+  Serial.print("Number of turns on channel 0: ");
+  Serial.println(turns);
 
-  // Read the position on channel 0 to verify the reset
-  position = readEncoderPosition(0);
-  Serial.print("Encoder position on channel 0 after reset: ");
-  Serial.println(position);
+  delay(1000); // Wait for 5 second
+  
+  
 
-  delay(1000);
+ 
 
  }
 

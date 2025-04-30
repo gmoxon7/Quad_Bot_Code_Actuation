@@ -47,6 +47,39 @@ uint16_t readEncoderPosition(uint8_t channel) {
   return position;
 }
   
+int16_t readTurns(uint8_t channel) {
+  // Activate the multiplexer for the desired channel
+  ACTIVATE_MUX(channel);
+  delayMicroseconds(3); // Small delay to establish CS for the encoder
+
+  // Start SPI transaction
+  SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
+
+  // Send the command sequence to read turns
+  SPI.transfer(0x00); // First byte
+  delayMicroseconds(3);
+  SPI.transfer(0xA0); // Second byte
+  delayMicroseconds(3);
+  SPI.transfer(0x00); // Third byte (receive high byte of turns)
+  delayMicroseconds(3);
+  int16_t lowByte = SPI.transfer(0x00); // Fourth byte (receive low byte of turns)
+  delayMicroseconds(3);
+
+  // End SPI transaction
+  SPI.endTransaction();
+  DEACTIVATE_MUX();
+
+  
+
+    // Right-shift the combined value by 2 bits and mask to extract the middle 12 bits
+
+    int16_t turns = lowByte-255; // Invert the low byte to get the turns value
+ 
+  return turns;
+}
+
+
+
 
 //Command to reset the encoder. This does not set the zero point so an offset is needed.
 
