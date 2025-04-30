@@ -13,7 +13,7 @@
 
 // Function declarations
 uint16_t readEncoderPosition(uint8_t channel);
-void resetEncoder(uint8_t channel);
 int32_t readTurns(uint8_t channel);
+void resetEncoder(uint8_t channel);
 
 #endif

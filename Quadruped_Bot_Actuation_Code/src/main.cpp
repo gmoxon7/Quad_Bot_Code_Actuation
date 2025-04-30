@@ -21,7 +21,7 @@
 
 
 unsigned char I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
-
+uint16_t position = 0; // Variable to store the encoder position
 // put setup code here, to run once:
 
 void setup() {
@@ -98,53 +98,36 @@ void loop() {
 
   
     // Example: Switch to channel 5
-    I2C_SelectChannel(0x70, 4);
-    delay(2000);
+    //I2C_SelectChannel(0x70, 4);
+    //delay(2000);
   
 
-    Serial.print("\nI2C Multiplexer Channels: ");
-    Serial.print(I2C_RD(0x70));
+    //Serial.print("\nI2C Multiplexer Channels: ");
+    //Serial.print(I2C_RD(0x70));
 
     // Example: Disable all channels
     //I2C_DisableAllChannels(0x70);
     
 
 
-  // ACTIVATE_MUX(5); // Select and activate channel 5
-  // Serial.println("Multiplexer activated on channel 5");
-  // delay(3000); // Wait for 3 second
-
-  // // Deactivate the multiplexer
-  // DEACTIVATE_MUX(); // Disable all multiplexer outputs
-  // Serial.println("Multiplexer deactivated");
-  // delay(3000); // Wait for 3 second
-
-  // // Activate the multiplexer on channel 10
-  // ACTIVATE_MUX(10); // Select and activate channel 10
-  // Serial.println("Multiplexer activated on channel 10");
-  // delay(3000); // Wait for 3 second
-
-  // // Deactivate the multiplexer again
-  // DEACTIVATE_MUX();
-  // Serial.println("Multiplexer deactivated");
-  // delay(3000); // Wait for 3 second
-
+  
 //testing the SPI encoder 
- // Read position from encoder on channel 0
-//  uint16_t position = readEncoderPosition(0);
-//  Serial.print("Encoder position on channel 0: ");
-//  Serial.println(position);
+//Read position from encoder on channel 0
+  position = readEncoderPosition(0);
+  Serial.print("Encoder position on channel 0: ");
+  Serial.println(position);
 
-//  delay(1000); // Wait for 1 second
+  delay(1000); // Wait for 1 second
 
-//  // Read position from encoder on channel 3
-//  position = readEncoderPosition(3);
-//  Serial.print("Encoder position on channel 3: ");
-//  Serial.println(position);
+  resetEncoder(0);
+  delay(1000);
 
-//  delay(1000); // Wait for 1 second
+  // Read the position on channel 0 to verify the reset
+  position = readEncoderPosition(0);
+  Serial.print("Encoder position on channel 0 after reset: ");
+  Serial.println(position);
 
-
+  delay(1000);
 
  }
 
