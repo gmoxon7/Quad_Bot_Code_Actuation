@@ -11,7 +11,7 @@
 
 static uint16_t offsets[16] = {0}; // Array to store offsets for up to 16 channels
 
-uint16_t readEncoderPosition(uint8_t channel) {
+float readEncoderPosition(uint8_t channel) {
   uint16_t position = 0;
 
   // Activate the multiplexer for the desired channel
@@ -43,8 +43,8 @@ uint16_t readEncoderPosition(uint8_t channel) {
   } else {
       position = (4096 + position) - offsets[channel]; // Handle wrap-around
   }
-
-  return position;
+  float degrees = (position * 360.0) / 4096.0; // Convert to degrees
+  return degrees;
 }
   
 int16_t readTurns(uint8_t channel) {
@@ -59,22 +59,20 @@ int16_t readTurns(uint8_t channel) {
   SPI.transfer(0x00); // First byte
   delayMicroseconds(3);
   SPI.transfer(0xA0); // Second byte
+  delayMicroseconds(40); // Small delay as prescribed by the datasheet
+  uint16_t highByte = SPI.transfer(0x00); // Third byte (receive high byte of turns)
   delayMicroseconds(3);
-  SPI.transfer(0x00); // Third byte (receive high byte of turns)
+  uint16_t lowByte = SPI.transfer(0x00); // Fourth byte (receive low byte of turns)
   delayMicroseconds(3);
-  int16_t lowByte = SPI.transfer(0x00); // Fourth byte (receive low byte of turns)
-  delayMicroseconds(3);
-
   // End SPI transaction
   SPI.endTransaction();
   DEACTIVATE_MUX();
-
   
+  uint16_t rawTurns = (highByte << 8) | lowByte;
+  
+ // Right-shift the combined value by 2 bits and mask to extract the middle 12 bits
+ int16_t turns = (rawTurns >> 2) & 0x0FFF;
 
-    // Right-shift the combined value by 2 bits and mask to extract the middle 12 bits
-
-    int16_t turns = lowByte-255; // Invert the low byte to get the turns value
- 
   return turns;
 }
 

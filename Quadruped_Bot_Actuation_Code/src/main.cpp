@@ -3,6 +3,8 @@
 //custom header file for I2C functions
 #include "PinAssignments.h" // Include the pin assignments header file
 
+#include "PWR_MNGMT_FCT.h" // Include the power management functions header file
+
 #include "I2C_FCTNS.h" // Include the I2C functions header file
 #include "I2C_MUX.h"    // Include the I2C multiplexer functions header file
 
@@ -21,7 +23,7 @@
 
 
 unsigned char I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
-uint16_t position = 0; // Variable to store the encoder position
+float degrees = 0; // Variable to store the encoder position
 // put setup code here, to run once:
 
 void setup() {
@@ -109,9 +111,6 @@ void loop() {
   // put your main code here, to run repeatedly:
 //I2C multiplexer channel select and read code.
 
- 
-
-  
     // Example: Switch to channel 5
     //I2C_SelectChannel(0x70, 4);
     //delay(2000);
@@ -130,26 +129,36 @@ void loop() {
 //Read position from encoder on channel 0
 
 
-delay(3000); // Wait for 3 second
+// delay(3000); // Wait for 3 second
 
 
-  position = readEncoderPosition(0);
-  Serial.print("Encoder position on channel 0: ");
-  Serial.println(position);
+//   degrees = readEncoderPosition(0);
+//   Serial.print("Encoder position on channel 0: ");
+//   Serial.println(degrees);
 
-  delay(1000); // Wait for 5 second
+//   delay(1000); // Wait for 5 second
   
 
-  // Test turns counting on channel 0
-  int16_t turns = readTurns(0); // Read the number of turns on channel 0
-  Serial.print("Number of turns on channel 0: ");
-  Serial.println(turns);
+//   // Test turns counting on channel 0
+//   int16_t turns = readTurns(0); // Read the number of turns on channel 0
+//   Serial.print("Number of turns on channel 0: ");
+//   Serial.println(turns);
 
-  delay(1000); // Wait for 5 second
+//   delay(1000); // Wait for 5 second
   
-  
+float packVoltage = readPackSense();
+Serial.print( "\n Pack Voltage: ");
+Serial.println(packVoltage);
 
- 
+precharge(1); // Precharge with 1 capacitor
 
+
+// Turn off the CHG pin
+setCHG(false);
+
+delay(5000); // Wait for 5 second
+Serial.print( "\n DSG pin state: OFF ");
+setDSG(LOW); // Turn off the DSG pin
+delay(1000); // Wait for 5 second
  }
 
