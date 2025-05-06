@@ -5,25 +5,31 @@
 
 #include "PWR_MNGMT_FCT.h" // Include the power management functions header file
 
-#include "I2C_FCTNS.h" // Include the I2C functions header file
+#include "I2C_FCT.h" // Include the I2C functions header file
 #include "I2C_MUX.h"    // Include the I2C multiplexer functions header file
 
-#include "SPI_NCDR_FCTNS.h" // Include the SPI NCDR functions header file
+#include "SPI_NCDR_FCT.h" // Include the SPI NCDR functions header file
 #include "SPI_MUX.h" // Include the SPI multiplexer functions
+
+#include "BMS_I2C_FCT.h" // Include the BMS I2C functions header file
 
 
 #include <Wire.h>
-//#include <Wire1.h> // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(sc1)
+
 
 #include <SPI.h> // for the rotary encoder
 
 //Definitions
 #define WIRE Wire // for teensy 4.0 this is the i2c library on pins 18(sda) and 19(scl)
-//#define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
+#define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
 
 
-unsigned char I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
+uint8_t I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
 float degrees = 0; // Variable to store the encoder position
+
+uint8_t chipAddress = 0x49; // Replace with the actual I2C address of the L9961
+uint8_t registerAddress = 0x28; // checking vb value.
+
 // put setup code here, to run once:
 
 void setup() {
@@ -69,6 +75,8 @@ delay(1000); //delay for the control board to initialize
 
   Serial.begin(9600);
   Wire.begin(); //initialize the i2c bus
+  Wire1.begin(); //initialize the i2c bus
+  
   while (!Serial)
      delay(10);
   Serial.println("\nI2C Initialized");
@@ -146,19 +154,30 @@ void loop() {
 
 //   delay(1000); // Wait for 5 second
   
-float packVoltage = readPackSense();
-Serial.print( "\n Pack Voltage: ");
-Serial.println(packVoltage);
+// float packVoltage = readPackSense();
+// Serial.print( "\n Pack Voltage: ");
+// Serial.println(packVoltage);
 
-precharge(1); // Precharge with 1 capacitor
+// precharge(1); // Precharge with 1 capacitor
 
 
-// Turn off the CHG pin
-setCHG(false);
+// // Turn off the CHG pin
+// setCHG(false);
 
-delay(5000); // Wait for 5 second
-Serial.print( "\n DSG pin state: OFF ");
-setDSG(LOW); // Turn off the DSG pin
-delay(1000); // Wait for 5 second
+// delay(5000); // Wait for 5 second
+// Serial.print( "\n DSG pin state: OFF ");
+// setDSG(LOW); // Turn off the DSG pin
+// delay(1000); // Wait for 5 second
+
+delay(1000); // Wait for 1 second
+
+uint16_t data = readBMSData(chipAddress, registerAddress);
+    Serial.print("Data read from L9961: 0x");
+    Serial.println(data, HEX);
+
+
+
+
+
  }
 

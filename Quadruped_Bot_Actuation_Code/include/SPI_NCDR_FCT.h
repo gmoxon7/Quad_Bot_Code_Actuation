@@ -5,8 +5,8 @@
 
 
 
-#ifndef SPI_NCDR_FCTNS_H
-#define SPI_NCDR_FCTNS_H
+#ifndef SPI_NCDR_FCT_H
+#define SPI_NCDR_FCT_H
 
 #include <Arduino.h>
 #include <SPI.h>

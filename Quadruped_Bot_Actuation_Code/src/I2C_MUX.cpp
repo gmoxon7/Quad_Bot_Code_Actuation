@@ -5,7 +5,7 @@
 
 #include "PinAssignments.h"
 #include "I2C_MUX.h"
-#include "I2C_FCTNS.h" // Include the I2C_FCTNS header file
+#include "I2C_FCT.h" // Include the I2C_FCTNS header file
 
 // Global variable to store the currently active channel
 static int8_t currentChannel = -1; // -1 indicates no channel is currently selected

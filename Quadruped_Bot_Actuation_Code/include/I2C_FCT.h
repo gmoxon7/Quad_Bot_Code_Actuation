@@ -7,8 +7,8 @@
 // The functions include I2C_WR for writing data to a specific I2C address and
 // I2C_RD for reading data from a specific I2C address.
 
-#ifndef I2C_FCTNS_H
-#define I2C_FCTNS_H
+#ifndef I2C_FCT_H
+#define I2C_FCT_H
 
 #include <Arduino.h>
 #include <Wire.h> // Include the Wire library for I2C communication
@@ -28,6 +28,18 @@ unsigned char I2C_RD(unsigned char ADDRESS);
 // Overloaded function for devices with chip address and register address
 unsigned char I2C_RD(unsigned char chipAddress, unsigned char registerAddress);
 
+//WIRE1 functions
+// Function to write to a specific I2C address on the second I2C channel
+
+void I2C_WR1(unsigned char ADDRESS, unsigned char I2C_OPERATION);
+// Overloaded function for devices with chip address, register address, and data byte
+void I2C_WR1(unsigned char chipAddress, unsigned char registerAddress, unsigned char dataByte);
+
+//Function to read from specific addresses
+// Overloaded function for devices with only chip address
+unsigned char I2C_RD1(unsigned char ADDRESS);
+// Overloaded function for devices with chip address and register address
+unsigned char I2C_RD1(unsigned char chipAddress, unsigned char registerAddress);
 
 
 #endif

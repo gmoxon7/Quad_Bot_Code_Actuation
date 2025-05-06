@@ -6,7 +6,7 @@
 
 
 #include "PinAssignments.h"
-#include "SPI_NCDR_FCTNS.h"
+#include "SPI_NCDR_FCT.h"
 #include "SPI_MUX.h" // Include multiplexer functions
 
 static uint16_t offsets[16] = {0}; // Array to store offsets for up to 16 channels
