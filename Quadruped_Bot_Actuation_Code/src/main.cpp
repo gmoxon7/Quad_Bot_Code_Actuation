@@ -28,7 +28,7 @@ uint8_t I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version i
 float degrees = 0; // Variable to store the encoder position
 
 uint8_t chipAddress = 0x49; // Replace with the actual I2C address of the L9961
-uint8_t registerAddress = 0x28; // checking vb value.
+uint8_t registerAddress = 0x0; // checking vb value.
 
 // put setup code here, to run once:
 
@@ -117,7 +117,7 @@ delay(1000); //delay for the control board to initialize
 
 void loop() {
   // put your main code here, to run repeatedly:
-//I2C multiplexer channel select and read code.
+  //I2C multiplexer channel select and read code.
 
     // Example: Switch to channel 5
     //I2C_SelectChannel(0x70, 4);
@@ -133,50 +133,88 @@ void loop() {
 
 
   
-//testing the SPI encoder 
-//Read position from encoder on channel 0
+  //testing the SPI encoder 
+  //Read position from encoder on channel 0
 
 
-// delay(3000); // Wait for 3 second
+  // delay(3000); // Wait for 3 second
 
 
-//   degrees = readEncoderPosition(0);
-//   Serial.print("Encoder position on channel 0: ");
-//   Serial.println(degrees);
+  //   degrees = readEncoderPosition(0);
+  //   Serial.print("Encoder position on channel 0: ");
+  //   Serial.println(degrees);
 
-//   delay(1000); // Wait for 5 second
+  //   delay(1000); // Wait for 5 second
   
 
-//   // Test turns counting on channel 0
-//   int16_t turns = readTurns(0); // Read the number of turns on channel 0
-//   Serial.print("Number of turns on channel 0: ");
-//   Serial.println(turns);
+  //   // Test turns counting on channel 0
+  //   int16_t turns = readTurns(0); // Read the number of turns on channel 0
+  //   Serial.print("Number of turns on channel 0: ");
+  //   Serial.println(turns);
 
-//   delay(1000); // Wait for 5 second
+  //   delay(1000); // Wait for 5 second
   
-// float packVoltage = readPackSense();
-// Serial.print( "\n Pack Voltage: ");
-// Serial.println(packVoltage);
+  // float packVoltage = readPackSense();
+  // Serial.print( "\n Pack Voltage: ");
+  // Serial.println(packVoltage);
 
-// precharge(1); // Precharge with 1 capacitor
+  // precharge(1); // Precharge with 1 capacitor
 
 
-// // Turn off the CHG pin
-// setCHG(false);
+  // // Turn off the CHG pin
+  // setCHG(false);
 
-// delay(5000); // Wait for 5 second
-// Serial.print( "\n DSG pin state: OFF ");
-// setDSG(LOW); // Turn off the DSG pin
-// delay(1000); // Wait for 5 second
+  // delay(5000); // Wait for 5 second
+  // Serial.print( "\n DSG pin state: OFF ");
+  // setDSG(LOW); // Turn off the DSG pin
+  // delay(1000); // Wait for 5 second
 
-delay(1000); // Wait for 1 second
+ 
 
-uint16_t data = readBMSData(chipAddress, registerAddress);
+  uint16_t data = readBMSData(chipAddress, registerAddress);
     Serial.print("Data read from L9961: 0x");
     Serial.println(data, HEX);
+  delay(5000); // Wait for 1 second
 
-
-
+    byte error, address;
+    int nDevices;
+  
+    Serial.println("Scanning...");
+  
+    nDevices = 0;
+    for(address = 0x49; address < 0x4c; address++ )
+    {
+      // The i2c_scanner uses the return value of
+      // the Write.endTransmisstion to see if
+      // a device did acknowledge to the address.
+      Wire1.beginTransmission(address);
+      error = Wire1.endTransmission();
+  
+      if (error == 0)
+      {
+        Serial.print("I2C device found at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+  
+        nDevices++;
+      }
+      else if (error==4)
+      {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+          Serial.print("0");
+        Serial.println(address,HEX);
+      }
+    }
+    if (nDevices == 0)
+      Serial.println("No I2C devices found\n");
+    else
+      Serial.println("done\n");
+  
+    delay(5000);           // wait 5 seconds for next scan
+  
 
 
  }
