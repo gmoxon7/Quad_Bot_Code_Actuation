@@ -110,6 +110,9 @@ delay(1000); //delay for the control board to initialize
   resetEncoder(14);
   resetEncoder(15);
 
+
+
+  
 }
 
 
@@ -174,48 +177,14 @@ void loop() {
   uint16_t data = readBMSData(chipAddress, registerAddress);
     Serial.print("Data read from L9961: 0x");
     Serial.println(data, HEX);
-  delay(5000); // Wait for 1 second
+    delay(5000); // Wait for 1 second
 
-    byte error, address;
-    int nDevices;
+  sendBMSIdentityCommand("DEVICE_NAME_LSB", 0x1234); // Replace 0x1234 with your actual data
   
-    Serial.println("Scanning...");
-  
-    nDevices = 0;
-    for(address = 0x49; address < 0x4c; address++ )
-    {
-      // The i2c_scanner uses the return value of
-      // the Write.endTransmisstion to see if
-      // a device did acknowledge to the address.
-      Wire1.beginTransmission(address);
-      error = Wire1.endTransmission();
-  
-      if (error == 0)
-      {
-        Serial.print("I2C device found at address 0x");
-        if (address<16)
-          Serial.print("0");
-        Serial.print(address,HEX);
-        Serial.println("  !");
-  
-        nDevices++;
-      }
-      else if (error==4)
-      {
-        Serial.print("Unknown error at address 0x");
-        if (address<16)
-          Serial.print("0");
-        Serial.println(address,HEX);
-      }
-    }
-    if (nDevices == 0)
-      Serial.println("No I2C devices found\n");
-    else
-      Serial.println("done\n");
-  
-    delay(5000);           // wait 5 seconds for next scan
-  
-
+  data = readBMSData(chipAddress, 0x1e); // Read the device name LSB register
+    Serial.print("Data read from L9961: 0x");
+    Serial.println(data, HEX);
+    delay(5000); // Wait for 1 second
 
  }
 
