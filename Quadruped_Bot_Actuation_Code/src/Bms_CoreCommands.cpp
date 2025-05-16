@@ -1,0 +1,132 @@
+// Bms_CoreCommands.cpp
+// --------------------
+// Implementation of I2C functions for reading and writing data to the L9961 BMS (Battery Management System) module.
+// Includes functions for register access, conversion state control, and real-time BMS commands.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
+
+
+#include "PinAssignments.h"
+#include "BMS_CoreCommands.h" // Include the header file for BMS I2C functions
+
+
+
+
+int bmsConversionActive = 0; // 1 = ON, 0 = OFF This variable is used in the config and identity functions to keep track of if the measuring registers are changing.
+
+// Single Read Function for L9961
+uint16_t readBMSData(uint8_t chipAddress, uint8_t registerAddress) {
+    uint16_t data = 0;
+
+    // Step 1: Send the slave address with the write bit and the register address
+    Wire1.beginTransmission(chipAddress);
+    Wire1.write(registerAddress);
+    Wire1.endTransmission(true); // Send a repeated start condition
+    delayMicroseconds(3); // Small delay to allow the device to process the request (tbuf)
+    // Step 2: Send the slave address with the read bit
+    Wire1.requestFrom(chipAddress, (uint8_t)2, true); // Request 2 bytes from the slave
+
+    // Step 3: Read the two bytes of data
+    if (Wire1.available() >= 2) {
+        uint8_t highByte = Wire1.read(); // Read the first byte (MSB)
+        uint8_t lowByte = Wire1.read();  // Read the second byte (LSB)
+        data = (highByte << 8) | lowByte; // Combine the two bytes into a 16-bit value
+    }
+
+    return data;
+}
+
+
+// Function to write data to the BMS module
+void writeBMSData(uint8_t chipAddress, uint8_t registerAddress, uint16_t data) {
+    // Step 1: Start communication with the slave device
+    Wire1.beginTransmission(chipAddress);
+
+    // Step 2: Send the register address
+    Wire1.write(registerAddress);
+
+    // Step 3: Send the two data bytes (MSB first, then LSB)
+    uint8_t highByte = (data >> 8) & 0xFF; // Extract the most significant byte
+    uint8_t lowByte = data & 0xFF;        // Extract the least significant byte
+    Wire1.write(highByte);                // Send the MSB
+    Wire1.write(lowByte);                 // Send the LSB
+
+    // Step 4: End the transmission (send a stop condition)
+    if (Wire1.endTransmission(true) != 0) { // Check for errors
+        Serial.println("Error: Failed to write data to BMS.");
+    } else {
+        Serial.println("Write successful.");
+    }
+}
+
+
+
+
+//function used whenever a configuration is set. this stops registers changing while been written.
+void setBMSConversionState(const char* state) {
+    if (strcmp(state, "CONVERSION_OFF") == 0) {
+        writeBMSData(0x49, 0x02, 0x0000); // Conversion off: register 0x02, data 0x0000
+        bmsConversionActive = 0;
+        Serial.println("Conversion OFF command sent.");
+    } else if (strcmp(state, "CONVERSION_ON") == 0) {
+        writeBMSData(0x49, 0x02, 0x0FFF); // Conversion on: register 0x02, data 0x0FFF conversions occur every 310ms
+        bmsConversionActive = 1;
+        Serial.println("Conversion ON command sent.");
+    } else {
+        Serial.println("Unknown conversion state command.");
+    }
+}
+
+
+void sendBMSCommand(const char* command) {
+    uint8_t registerAddress;
+    uint16_t data;
+
+    // Map commands to register addresses and data values
+    if (strcmp(command, "BAL_ENABLE") == 0) {
+        registerAddress = 0x01; // Register address to interface with balancing fets
+        data = 0x1F;          // set balancing on
+    } else if (strcmp(command, "BAL_DISABLE") == 0) {
+        registerAddress = 0x01; // Register address to interface with balancing fets
+        data = 0x0000;          // Set balancing off
+    } else if (strcmp(command, "GO2SHIP") == 0) {
+        registerAddress = 0x21; // Sends the device to ship mode. this is a low power mode.
+        data = 0x2000;          // Sends the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
+    } else if (strcmp(command, "GO2STBY") == 0) {
+        registerAddress = 0x22; // Sends the chip to standby mode. this is a low power mode.
+        data = 0x2000;          // sets the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
+    } else if (strcmp(command, "FUSE_TRIG_DISARM") == 0) {
+        registerAddress = 0x23; // turns off the fuse
+        data = 0x1000;          // 
+    } else if (strcmp(command, "FUSE_TRIG_ARM") == 0) {
+        registerAddress = 0x23; // turns on the fuse
+        data = 0x2000;          // set all high as is opposite the default
+    } else if (strcmp(command, "FUSE_TRIG_FIRE_INTERRUPT") == 0) {
+        registerAddress = 0x24; // Stops the fuse from firing
+        data = 0x1000;          // set to 1 on the 13th bit to stop the fuse from firing.
+    } else if (strcmp(command, "FUSE_TRIG_FIRE") == 0) {
+        registerAddress = 0x24; // A read/write bit that can be actuated by the BMS or the MCU.
+        data = 0x2000;          // this will fire on command.
+    }  else {
+        Serial.println("Unknown Real Time command.");
+        return;
+    }
+
+    //Checks if conversion is active and if so turns it off.
+    // This is to ensure that the BMS is not in conversion mode while writing configuration data.
+    if (bmsConversionActive == 1) {
+        setBMSConversionState("CONVERSION_OFF");
+        
+    }
+    writeBMSData(0x49, registerAddress, data);
+
+    Serial.print("BMS Command sent: ");
+    Serial.print(command);
+    Serial.print(" with data 0x");
+    Serial.println(data, HEX);
+}
+

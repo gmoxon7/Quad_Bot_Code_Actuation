@@ -1,3 +1,17 @@
+// main.cpp
+// --------
+// Main application file for the Quad_Bot_Code_Actuation project.
+// This program actuates the quadruped robot, provides feedback data to the Raspberry Pi,
+// and communicates over ROS (Robot Operating System).
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
+
+
+
 #include <Arduino.h>
 
 //custom header file for I2C functions
@@ -11,7 +25,10 @@
 #include "SPI_NCDR_FCT.h" // Include the SPI NCDR functions header file
 #include "SPI_MUX.h" // Include the SPI multiplexer functions
 
-#include "BMS_I2C_FCT.h" // Include the BMS I2C functions header file
+#include "BMS_CoreCommands.h" // Include the BMS core commands header file
+#include "BMS_SetupCommands.h" // Include the BMS setup commands header file
+#include "BMS_NumericalCommands.h" // Include the BMS numerical commands header file
+
 
 
 #include <Wire.h>
