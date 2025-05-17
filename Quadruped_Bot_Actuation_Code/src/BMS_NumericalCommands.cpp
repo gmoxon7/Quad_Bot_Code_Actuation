@@ -35,76 +35,78 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     uint16_t data=0;
 
     // Helper lambda to convert "max"/"min" or string to value
-    auto parseValue = [](const char* arg, uint16_t minVal, uint16_t maxVal) -> uint16_t {
-        if (!arg) return 0;
-        if (strcasecmp(arg, "max") == 0) return maxVal;
-        if (strcasecmp(arg, "min") == 0) return minVal;
-        long val = strtol(arg, nullptr, 10);
-        if (val < minVal) return minVal;
-        if (val > maxVal) return maxVal;
-        return (uint16_t)val;
-    };
+    // For integer fields
+auto parseIntArg = [](const char* arg, int minVal, int maxVal) -> int {
+    if (!arg) return minVal;
+    if (strcasecmp(arg, "max") == 0) return maxVal;
+    if (strcasecmp(arg, "min") == 0) return minVal;
+    long val = strtol(arg, nullptr, 10);
+    if (val < minVal) return minVal;
+    if (val > maxVal) return maxVal;
+    return (int)val;
+};
+
+// For float fields
+auto parseFloatArg = [](const char* arg, float minVal, float maxVal) -> float {
+    if (!arg) return minVal;
+    if (strcasecmp(arg, "max") == 0) return maxVal;
+    if (strcasecmp(arg, "min") == 0) return minVal;
+    float val = atof(arg);
+    if (val < minVal) return minVal;
+    if (val > maxVal) return maxVal;
+    return val;
+};
 
     // Map commands to register addresses and value ranges
     if (strcmp(command, "CSA_GAIN_FACTOR") == 0) {
         registerAddress = 0x05;
-        data = parseValue(arg1, 0x0000, 0xFFFF);
+        data = parseIntArg(arg1, 0x0000, 0xFFFF);
     }
     
     
     else if (strcmp(command, "VCELL_OV_TH") == 0) {
         registerAddress = 0x06;
-    // Hardcoded min/max for this register
-    const float VCELL_OV_TH_MIN = 4.3f;
-    const float VCELL_OV_TH_MAX = 5.0f;
-    const int NCELL_OV_CNT_TH_MIN = 3;
-    const int NCELL_OV_CNT_TH_MAX = 15;
-    const float VCELL_RES = 0.00122f; // Example value, check your datasheet
+        // Hardcoded min/max for this register
+        const float VCELL_OV_TH_MIN = 4.3f;
+        const float VCELL_OV_TH_MAX = 5.0f;
+        const int NCELL_OV_CNT_TH_MIN = 3;
+        const int NCELL_OV_CNT_TH_MAX = 15;
+        const float VCELL_RES = 0.00122f; // Example value, check your datasheet
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VCELL_OV_TH_MIN) voltage = VCELL_OV_TH_MIN;
-    if (voltage > VCELL_OV_TH_MAX) voltage = VCELL_OV_TH_MAX;
-    int vcell_code = (int)((voltage / (16 * VCELL_RES)) + 0.5f);
-    if (vcell_code < 0) vcell_code = 0;
-    if (vcell_code > 0xFF) vcell_code = 0xFF;
+        // Parse voltage argument, supporting "min"/"max"
+        float voltage = parseFloatArg(arg1, VCELL_OV_TH_MIN, VCELL_OV_TH_MAX);
+        int vcell_code = (int)((voltage / (16 * VCELL_RES)) + 0.5f);
+        if (vcell_code < 0) vcell_code = 0;
+        if (vcell_code > 0xFF) vcell_code = 0xFF;
 
-    // Parse and clamp count argument
-    int ncell_ovcnt = atoi(arg2 ? arg2 : "0");
-    if (ncell_ovcnt < NCELL_OV_CNT_TH_MIN) ncell_ovcnt = NCELL_OV_CNT_TH_MIN;
-    if (ncell_ovcnt > NCELL_OV_CNT_TH_MAX) ncell_ovcnt = NCELL_OV_CNT_TH_MAX;
+        // Parse count argument, supporting "min"/"max"
+        int ncell_ovcnt = parseIntArg(arg2, NCELL_OV_CNT_TH_MIN, NCELL_OV_CNT_TH_MAX);
 
-    // Pack the data: [0000][NCELL_OV_CNT_TH(4)][VCELL_OV_TH(8)]
-    data = ((ncell_ovcnt & 0xF) << 8) | (vcell_code & 0xFF);
-
-    } 
+        // Pack the data: [0000][NCELL_OV_CNT_TH(4)][VCELL_OV_TH(8)]
+        data = ((ncell_ovcnt & 0xF) << 8) | (vcell_code & 0xFF);
+    }
     
     
     else if (strcmp(command, "VCELL_UV_TH") == 0) {
-    registerAddress = 0x07;
-    // Hardcoded min/max for this register
-    const float VCELL_UV_TH_MIN = 2.0f;
-    const float VCELL_UV_TH_MAX = 3.0f;
-    const int NCELL_UV_CNT_TH_MIN = 3;
-    const int NCELL_UV_CNT_TH_MAX = 15;
-    const float VCELL_RES = 0.00122f; // Example value, check your datasheet
+        registerAddress = 0x07;
+        // Hardcoded min/max for this register
+        const float VCELL_UV_TH_MIN = 2.0f;
+        const float VCELL_UV_TH_MAX = 3.0f;
+        const int NCELL_UV_CNT_TH_MIN = 3;
+        const int NCELL_UV_CNT_TH_MAX = 15;
+        const float VCELL_RES = 0.00122f; // Example value, check your datasheet
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VCELL_UV_TH_MIN) voltage = VCELL_UV_TH_MIN;
-    if (voltage > VCELL_UV_TH_MAX) voltage = VCELL_UV_TH_MAX;
-    int vcell_code = (int)((voltage / (16 * VCELL_RES)) + 0.5f);
-    if (vcell_code < 0) vcell_code = 0;
-    if (vcell_code > 0xFF) vcell_code = 0xFF;
+        // Parse voltage argument, supporting "min"/"max"
+        float voltage = parseFloatArg(arg1, VCELL_UV_TH_MIN, VCELL_UV_TH_MAX);
+        int vcell_code = (int)((voltage / (16 * VCELL_RES)) + 0.5f);
+        if (vcell_code < 0) vcell_code = 0;
+        if (vcell_code > 0xFF) vcell_code = 0xFF;
 
-    // Parse and clamp count argument
-    int ncell_uvcnt = atoi(arg2 ? arg2 : "0");
-    if (ncell_uvcnt < NCELL_UV_CNT_TH_MIN) ncell_uvcnt = NCELL_UV_CNT_TH_MIN;
-    if (ncell_uvcnt > NCELL_UV_CNT_TH_MAX) ncell_uvcnt = NCELL_UV_CNT_TH_MAX;
+        // Parse count argument, supporting "min"/"max"
+        int ncell_uvcnt = parseIntArg(arg2, NCELL_UV_CNT_TH_MIN, NCELL_UV_CNT_TH_MAX);
 
-    // Pack the data: [0000][NCELL_UV_CNT_TH(4)][VCELL_UV_TH(8)]
-    data = ((ncell_uvcnt & 0xF) << 8) | (vcell_code & 0xFF);
-
+        // Pack the data: [0000][NCELL_UV_CNT_TH(4)][VCELL_UV_TH(8)]
+        data = ((ncell_uvcnt & 0xF) << 8) | (vcell_code & 0xFF);
     }
 
 
@@ -115,25 +117,20 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const float VCELL_SEVERE_DELTA_TH_MAX = 5.0f;
     const float VCELL_RES = 0.00122f; // Example value, check your datasheet
 
-    // Parse and clamp OV delta argument (arg1)
-    float ov_voltage = atof(arg1);
-    if (ov_voltage < VCELL_SEVERE_DELTA_TH_MIN) ov_voltage = VCELL_SEVERE_DELTA_TH_MIN;
-    if (ov_voltage > VCELL_SEVERE_DELTA_TH_MAX) ov_voltage = VCELL_SEVERE_DELTA_TH_MAX;
+    // Parse OV delta argument (arg1), supporting "min"/"max"
+    float ov_voltage = parseFloatArg(arg1, VCELL_SEVERE_DELTA_TH_MIN, VCELL_SEVERE_DELTA_TH_MAX);
     int ov_code = (int)((ov_voltage / (16 * VCELL_RES)) + 0.5f);
     if (ov_code < 0) ov_code = 0;
     if (ov_code > 0xFF) ov_code = 0xFF;
 
-    // Parse and clamp UV delta argument (arg2)
-    float uv_voltage = atof(arg2 ? arg2 : "0");
-    if (uv_voltage < VCELL_SEVERE_DELTA_TH_MIN) uv_voltage = VCELL_SEVERE_DELTA_TH_MIN;
-    if (uv_voltage > VCELL_SEVERE_DELTA_TH_MAX) uv_voltage = VCELL_SEVERE_DELTA_TH_MAX;
+    // Parse UV delta argument (arg2), supporting "min"/"max"
+    float uv_voltage = parseFloatArg(arg2, VCELL_SEVERE_DELTA_TH_MIN, VCELL_SEVERE_DELTA_TH_MAX);
     int uv_code = (int)((uv_voltage / (16 * VCELL_RES)) + 0.5f);
     if (uv_code < 0) uv_code = 0;
     if (uv_code > 0xFF) uv_code = 0xFF;
 
     // Pack the data: [OV_CODE(8)][UV_CODE(8)]
     data = ((uv_code & 0xFF) << 8) | (ov_code & 0xFF);
-
     }
 
 
@@ -146,22 +143,17 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const int NCELL_BAL_UV_CNT_TH_MAX = 15;
     const float VCELL_RES = 0.00122f; // Example value, check your datasheet
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VCELL_BAL_UV_DELTA_TH_MIN) voltage = VCELL_BAL_UV_DELTA_TH_MIN;
-    if (voltage > VCELL_BAL_UV_DELTA_TH_MAX) voltage = VCELL_BAL_UV_DELTA_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VCELL_BAL_UV_DELTA_TH_MIN, VCELL_BAL_UV_DELTA_TH_MAX);
     int vcell_code = (int)((voltage / (16 * VCELL_RES)) + 0.5f);
     if (vcell_code < 0) vcell_code = 0;
     if (vcell_code > 0xFF) vcell_code = 0xFF;
 
-    // Parse and clamp count argument
-    int ncell_cnt = atoi(arg2 ? arg2 : "0");
-    if (ncell_cnt < NCELL_BAL_UV_CNT_TH_MIN) ncell_cnt = NCELL_BAL_UV_CNT_TH_MIN;
-    if (ncell_cnt > NCELL_BAL_UV_CNT_TH_MAX) ncell_cnt = NCELL_BAL_UV_CNT_TH_MAX;
+    // Parse count argument, supporting "min"/"max"
+    int ncell_cnt = parseIntArg(arg2, NCELL_BAL_UV_CNT_TH_MIN, NCELL_BAL_UV_CNT_TH_MAX);
 
     // Pack the data: [0000][NCELL_BAL_UV_CNT_TH(4)][VCELL_BAL_UV_DELTA_TH(8)]
     data = ((ncell_cnt & 0xF) << 8) | (vcell_code & 0xFF);
-
     } 
 
 
@@ -173,23 +165,17 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const int NCELL_OV_CNT_TH_MAX = 15;
     const float VB_RES = 0.0061f; // 6.1mV
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VB_OV_TH_MIN) voltage = VB_OV_TH_MIN;
-    if (voltage > VB_OV_TH_MAX) voltage = VB_OV_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VB_OV_TH_MIN, VB_OV_TH_MAX);
     int vb_code = (int)((voltage / (16 * VB_RES)) + 0.5f);
     if (vb_code < 0) vb_code = 0;
     if (vb_code > 0xFF) vb_code = 0xFF;
 
-    // Parse and clamp count argument
-    int ncell_ovcnt = atoi(arg2 ? arg2 : "0");
-    if (ncell_ovcnt < NCELL_OV_CNT_TH_MIN) ncell_ovcnt = NCELL_OV_CNT_TH_MIN;
-    if (ncell_ovcnt > NCELL_OV_CNT_TH_MAX) ncell_ovcnt = NCELL_OV_CNT_TH_MAX;
+    // Parse count argument, supporting "min"/"max"
+    int ncell_ovcnt = parseIntArg(arg2, NCELL_OV_CNT_TH_MIN, NCELL_OV_CNT_TH_MAX);
 
     // Pack the data: [0000][NCELL_OV_CNT_TH(4)][VB_OV_TH(8)]
     data = ((ncell_ovcnt & 0xF) << 8) | (vb_code & 0xFF);
-
-
     }
 
 
@@ -200,25 +186,18 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const float VB_UV_TH_MAX = 25.0f;
     const int NCELL_UV_CNT_TH_MIN = 0;
     const int NCELL_UV_CNT_TH_MAX = 15;
-    
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VB_UV_TH_MIN) voltage = VB_UV_TH_MIN;
-    if (voltage > VB_UV_TH_MAX) voltage = VB_UV_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VB_UV_TH_MIN, VB_UV_TH_MAX);
     int vb_code = (int)((voltage / (16 * VB_RES)) + 0.5f);
     if (vb_code < 0) vb_code = 0;
     if (vb_code > 0xFF) vb_code = 0xFF;
 
-    // Parse and clamp count argument
-    int ncell_uvcnt = atoi(arg2 ? arg2 : "0");
-    if (ncell_uvcnt < NCELL_UV_CNT_TH_MIN) ncell_uvcnt = NCELL_UV_CNT_TH_MIN;
-    if (ncell_uvcnt > NCELL_UV_CNT_TH_MAX) ncell_uvcnt = NCELL_UV_CNT_TH_MAX;
+    // Parse count argument, supporting "min"/"max"
+    int ncell_uvcnt = parseIntArg(arg2, NCELL_UV_CNT_TH_MIN, NCELL_UV_CNT_TH_MAX);
 
     // Pack the data: [0000][NCELL_UV_CNT_TH(4)][VB_UV_TH(8)]
     data = ((ncell_uvcnt & 0xF) << 8) | (vb_code & 0xFF);
-    
-
     }
 
 
@@ -228,19 +207,15 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const float VB_SUM_MAX_DIFF_TH_MAX = 25.0f;
     const float VB_RES = 0.0061f; // 6.1mV
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VB_SUM_MAX_DIFF_TH_MIN) voltage = VB_SUM_MAX_DIFF_TH_MIN;
-    if (voltage > VB_SUM_MAX_DIFF_TH_MAX) voltage = VB_SUM_MAX_DIFF_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VB_SUM_MAX_DIFF_TH_MIN, VB_SUM_MAX_DIFF_TH_MAX);
     int vb_code = (int)((voltage / (16 * VB_RES)) + 0.5f);
     if (vb_code < 0) vb_code = 0;
     if (vb_code > 0xFF) vb_code = 0xFF;
 
     // Pack the data: [00000000][VB_SUM_MAX_DIFF_TH(8)]
     data = vb_code & 0xFF;
-
-
-     }
+    }
 
 
     else if (strcmp(command, "VNTC_OT_TH") == 0) {
@@ -249,25 +224,19 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const float VNTC_OT_TH_MAX = 3.3f;
     const int NNTC_OT_CNT_TH_MIN = 0;
     const int NNTC_OT_CNT_TH_MAX = 15;
-    const float VNTC_RES = 0.806f;
+    const float VNTC_RES = 0.000806f;
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VNTC_OT_TH_MIN) voltage = VNTC_OT_TH_MIN;
-    if (voltage > VNTC_OT_TH_MAX) voltage = VNTC_OT_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VNTC_OT_TH_MIN, VNTC_OT_TH_MAX);
     int ntc_code = (int)((voltage / VNTC_RES) + 0.5f);
     if (ntc_code < 0) ntc_code = 0;
     if (ntc_code > 0xFFF) ntc_code = 0xFFF;
 
-    // Parse and clamp count argument
-    int nntc_cnt = atoi(arg2 ? arg2 : "0");
-    if (nntc_cnt < NNTC_OT_CNT_TH_MIN) nntc_cnt = NNTC_OT_CNT_TH_MIN;
-    if (nntc_cnt > NNTC_OT_CNT_TH_MAX) nntc_cnt = NNTC_OT_CNT_TH_MAX;
+    // Parse count argument, supporting "min"/"max"
+    int nntc_cnt = parseIntArg(arg2, NNTC_OT_CNT_TH_MIN, NNTC_OT_CNT_TH_MAX);
 
     // Pack the data: [NNTC_OT_CNT_TH(4)][NTC_OT_TH(12)]
     data = ((nntc_cnt & 0xF) << 12) | (ntc_code & 0xFFF);
-    
-
     }
 
 
@@ -278,25 +247,19 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     const float VNTC_UT_TH_MAX = 3.3f;
     const int NNTC_UT_CNT_TH_MIN = 0;
     const int NNTC_UT_CNT_TH_MAX = 15;
-    const float VNTC_RES = 0.806f;
+    const float VNTC_RES = 0.000806f;
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VNTC_UT_TH_MIN) voltage = VNTC_UT_TH_MIN;
-    if (voltage > VNTC_UT_TH_MAX) voltage = VNTC_UT_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VNTC_UT_TH_MIN, VNTC_UT_TH_MAX);
     int ntc_code = (int)((voltage / VNTC_RES) + 0.5f);
     if (ntc_code < 0) ntc_code = 0;
     if (ntc_code > 0xFFF) ntc_code = 0xFFF;
 
-    // Parse and clamp count argument
-    int nntc_cnt = atoi(arg2 ? arg2 : "0");
-    if (nntc_cnt < NNTC_UT_CNT_TH_MIN) nntc_cnt = NNTC_UT_CNT_TH_MIN;
-    if (nntc_cnt > NNTC_UT_CNT_TH_MAX) nntc_cnt = NNTC_UT_CNT_TH_MAX;
+    // Parse count argument, supporting "min"/"max"
+    int nntc_cnt = parseIntArg(arg2, NNTC_UT_CNT_TH_MIN, NNTC_UT_CNT_TH_MAX);
 
     // Pack the data: [NNTC_UT_CNT_TH(4)][NTC_UT_TH(12)]
     data = ((nntc_cnt & 0xF) << 12) | (ntc_code & 0xFFF);
-    
-
     }
 
 
@@ -304,20 +267,16 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     registerAddress = 0x0F;
     const float VNTC_SEVERE_OT_DELTA_TH_MIN = 0.2f;
     const float VNTC_SEVERE_OT_DELTA_TH_MAX = 3.3f;
-    const float VNTC_RES = 0.806f;
+    const float VNTC_RES = 0.000806f;
 
-    // Parse and clamp voltage argument
-    float voltage = atof(arg1);
-    if (voltage < VNTC_SEVERE_OT_DELTA_TH_MIN) voltage = VNTC_SEVERE_OT_DELTA_TH_MIN;
-    if (voltage > VNTC_SEVERE_OT_DELTA_TH_MAX) voltage = VNTC_SEVERE_OT_DELTA_TH_MAX;
+    // Parse voltage argument, supporting "min"/"max"
+    float voltage = parseFloatArg(arg1, VNTC_SEVERE_OT_DELTA_TH_MIN, VNTC_SEVERE_OT_DELTA_TH_MAX);
     int ntc_code = (int)((voltage / VNTC_RES) + 0.5f);
     if (ntc_code < 0) ntc_code = 0;
     if (ntc_code > 0xFFF) ntc_code = 0xFFF;
 
     // Pack the data: [0000][NTC_SEVERE_OT_DELTA_TH(12)]
     data = ntc_code & 0xFFF;
-
-    
     }
 
 
@@ -327,26 +286,19 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     extern float Imax;
 
     // Parse and clamp charge current (arg1)
-    float chg_current = atof(arg1);
-    if (chg_current < 0.0f) chg_current = 0.0f;
-    if (chg_current > Imax) chg_current = Imax;
+    float chg_current = parseFloatArg(arg1, 0.0f, Imax);
     int chg_code = (int)((chg_current / Imax) * 255.0f + 0.5f);
     if (chg_code < 0) chg_code = 0;
     if (chg_code > 0xFF) chg_code = 0xFF;
 
     // Parse and clamp discharge current (arg2)
-    float dchg_current = atof(arg2 ? arg2 : "0");
-    if (dchg_current < 0.0f) dchg_current = 0.0f;
-    if (dchg_current > Imax) dchg_current = Imax;
+    float dchg_current = parseFloatArg(arg2, 0.0f, Imax);
     int dchg_code = (int)((dchg_current / Imax) * 255.0f + 0.5f);
     if (dchg_code < 0) dchg_code = 0;
     if (dchg_code > 0xFF) dchg_code = 0xFF;
 
     // Pack the data: [OVC_DCHG_TH(8)][OVC_CHG_TH(8)]
     data = ((dchg_code & 0xFF) << 8) | (chg_code & 0xFF);
-
-
-
     }
 
 
@@ -356,11 +308,7 @@ void sendBMSNumericalCommand(const char* command, const char* arg1, const char* 
     extern float Imax;
 
     // Parse and clamp current argument
-    float current = atof(arg1);
-    if (current < 0.0f) current = 0.0f;
-    if (current > Imax) current = Imax;
-
-    // Map current to 8-bit code (0xFF = Imax)
+    float current = parseFloatArg(arg1, 0.0f, Imax);
     int code = (int)((current / Imax) * 255.0f + 0.5f);
     if (code < 0) code = 0;
     if (code > 0xFF) code = 0xFF;
@@ -375,7 +323,7 @@ else if (strcmp(command, "SC_THRESHOLD") == 0) {
     extern float senseResistor;
 
     // Helper lambda to convert current to code for SC_TH and SC_PERSIST_TH
-    auto currentToCode = [](float current) -> int {
+    auto currentToCode = [&](float current) -> int {
         // Clamp current to minimum possible (for CODE=0)
         float minVoltage = 0.04914f;
         float maxVoltage = 0.04914f + 0.01404f * 15.0f; // 0.26074V
@@ -393,17 +341,23 @@ else if (strcmp(command, "SC_THRESHOLD") == 0) {
     };
 
     // Parse and clamp SC_TH (arg1)
-    float sc_current = atof(arg1);
+    float sc_current = parseFloatArg(arg1, 0.0f, 1000.0f); // 1000A is a safe upper bound
     int sc_code = currentToCode(sc_current);
 
     // Parse and clamp SC_PERSIST_TH (arg2)
-    float sc_persist_current = atof(arg2 ? arg2 : "0");
+    float sc_persist_current = parseFloatArg(arg2, 0.0f, 1000.0f);
     int sc_persist_code = currentToCode(sc_persist_current);
 
     // Pack the data: [00000000][SC_PERSIST_TH(4)][SC_TH(4)]
     data = ((sc_persist_code & 0xF) << 4) | (sc_code & 0xF);
 }
 
+
+
+else {
+    Serial.print("Numerical Command not recognized: ");
+    Serial.println(command);
+    return;
    
     // Conversion state check
     if (bmsConversionActive == 1) {
@@ -415,6 +369,9 @@ else if (strcmp(command, "SC_THRESHOLD") == 0) {
     Serial.print(command);
     Serial.print(" with data 0x");
     Serial.println(data, HEX);
+
+    
+}
 }
 /*
 // Function to send configuration commands to the BMS currently a list format to show each register.

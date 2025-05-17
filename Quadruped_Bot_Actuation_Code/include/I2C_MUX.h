@@ -1,5 +1,15 @@
-//Header file for I2C_MUX.cpp
-// This file contains the function declarations for controlling the PCA9548A I2C multiplexer
+// I2C_MUX.h
+// ---------
+// Function declarations for controlling the PCA9548A I2C multiplexer.
+// Includes functions to select a single channel or disable all channels on the multiplexer.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
+
+
 
 #ifndef I2C_MUX_H
 #define I2C_MUX_H

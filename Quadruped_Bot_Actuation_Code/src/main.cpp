@@ -201,7 +201,7 @@ void loop() {
   data = readBMSData(chipAddress, 0x1e); // Read the device name LSB register
     Serial.print("Data read from L9961: 0x");
     Serial.println(data, HEX);
-    delay(5000); // Wait for 1 second
+    delay(5000); // Wait for 5 second
 
  }
 

@@ -1,11 +1,14 @@
-// Header file for the I2C functions
-
-// This file contains the function declarations and includes necessary libraries
-// for I2C communication. It is used to read and write data to I2C devices.
-// The functions are designed to work with the Wire library, which is a standard
-// library for I2C communication in Arduino and compatible boards.
-// The functions include I2C_WR for writing data to a specific I2C address and
-// I2C_RD for reading data from a specific I2C address.
+// I2C_FCT.h
+// ---------
+// Function declarations and includes for I2C communication.
+// Provides functions to read and write data to I2C devices using the Wire library.
+// Designed for use with Arduino and compatible boards.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 #ifndef I2C_FCT_H
 #define I2C_FCT_H

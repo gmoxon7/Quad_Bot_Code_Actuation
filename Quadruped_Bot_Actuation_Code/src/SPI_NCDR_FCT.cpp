@@ -1,8 +1,14 @@
-// SPI_NCDR_FCTNS.h
-// This file contains the function declarations for controlling the SPI NCDR encoder
-// It includes functions to read the encoder position, reset the encoder, and read turns   
-
-
+// SPI_NCDR_FCT.cpp
+// -----------------
+// Implementation of functions for controlling the SPI NCDR encoder.
+// Includes functions to read the encoder position, reset the encoder, and read turns.
+// Utilizes the SPI multiplexer for channel selection.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 
 #include "PinAssignments.h"

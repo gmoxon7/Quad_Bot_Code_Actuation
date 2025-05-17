@@ -1,7 +1,16 @@
 // I2C_MUX.cpp
-// This file contains the implementation of functions for controlling the PCA9548A I2C multiplexer
-// It includes functions to select a specific channel and disable all channels on the multiplexer
-//It has been specified to only use one channel ata time but it is possible to use all at once.
+// -----------
+// Implementation of functions for controlling the PCA9548A I2C multiplexer.
+// Includes functions to select a specific channel and disable all channels on the multiplexer.
+// Only one channel is specified to be active at a time, but it is possible to use all at once.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
+
+
 
 #include "PinAssignments.h"
 #include "I2C_MUX.h"

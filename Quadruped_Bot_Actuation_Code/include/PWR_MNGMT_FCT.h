@@ -1,9 +1,14 @@
-//  PWR_MNGMT_FCT.h
+// PWR_MNGMT_FCT.h
+// ---------------
+// Function declarations for power management on the central control board.
+// Includes functions to control the main current path, precharge path, 
+// read voltage through the pack sense pin, and connect an external charger.
 //
-// This file contains the function declarations for power management functions
-// It includes functions to turn on the main current path,
-// turn on the current path through a precharge resistor read voltage through the
-// pack sense pin and connect an external charger to the battery pack.
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 #include <Arduino.h>
 

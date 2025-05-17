@@ -1,7 +1,13 @@
-// I2C_FCTNS.cpp
-// This file contains the implementation of I2C functions for reading and writing data
-
-
+// I2C_FCT.cpp
+// -----------
+// Implementation of I2C functions for reading and writing data to I2C devices.
+// Provides overloaded functions for single and dual I2C channels, supporting register and data byte access.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 #include "PinAssignments.h"
 #include "I2C_FCT.h"

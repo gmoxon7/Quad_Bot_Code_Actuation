@@ -1,7 +1,13 @@
 // SPI_MUX.h
-// This file contains the function declarations for controlling the SPI multiplexer
-// It includes functions to select a specific channel and activate/deactivate the multiplexer
-
+// ---------
+// Function declarations for controlling the SPI multiplexer on the central control board.
+// Includes functions to select a specific channel and activate/deactivate the multiplexer.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 #ifndef SPI_MUX_H
 #define SPI_MUX_H

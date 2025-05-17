@@ -1,9 +1,14 @@
 // PinAssignments.h
-// This file contains the pin assignments for the Teensy 4.0 microcontroller on the central control board project
-// It includes the pin numbers for various functions such as precharge discharge enable, 
-//charge enable, and multiplexer control pins
-// The pin numbers are defined using macros for easy reference in the code
-
+// ----------------
+// Pin assignments for the Teensy 4.0 microcontroller on the central control board project.
+// Defines pin numbers for precharge/discharge enable, charge enable, multiplexer control, 
+// and other board functions using macros for easy reference.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
 
 #ifndef PIN_ASSIGNMENTS_H
 #define PIN_ASSIGNMENTS_H

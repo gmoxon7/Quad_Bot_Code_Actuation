@@ -1,3 +1,14 @@
+// SPI_MUX.cpp
+// -----------
+// Implementation of functions for controlling the SPI multiplexer on the central control board.
+// Includes functions to select a specific channel, activate/deactivate the multiplexer, and manage output latching.
+//
+// Author: Greg Moxon
+// Organisation: Moxon Electronics
+// Created: 2024-05-16
+//
+// This file is part of the Quad_Bot_Code_Actuation project.
+
 
 #include "PinAssignments.h"
 #include "SPI_MUX.h"
