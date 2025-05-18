@@ -89,7 +89,7 @@ void sendBMSCommand(const char* command) {
     // Map commands to register addresses and data values
     if (strcmp(command, "BAL_ENABLE") == 0) {
         registerAddress = 0x01; // Register address to interface with balancing fets
-        data = 0x1F;          // set balancing on
+        data = 0x001F;          // set balancing on
     } else if (strcmp(command, "BAL_DISABLE") == 0) {
         registerAddress = 0x01; // Register address to interface with balancing fets
         data = 0x0000;          // Set balancing off
@@ -129,4 +129,6 @@ void sendBMSCommand(const char* command) {
     Serial.print(" with data 0x");
     Serial.println(data, HEX);
 }
+
+
 
