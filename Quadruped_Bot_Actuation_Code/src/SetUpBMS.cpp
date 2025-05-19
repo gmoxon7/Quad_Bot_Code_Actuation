@@ -23,6 +23,10 @@
 
 void setUpBMS() {
 
+	//RWBMSNVM("NVM_2_UL"); // This is the command to commit the DATA from the NVM TO I2C, this should be called on startup.	
+
+
+
 /*
     // Activates what is being sensed and where the FETs are.
     // This activates all sensors and deactivates CRC, OVC, and SC_EN. FETs left in default.

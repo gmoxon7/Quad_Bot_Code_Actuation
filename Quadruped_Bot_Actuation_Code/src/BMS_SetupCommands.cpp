@@ -17,53 +17,83 @@
 
 
 // Function to send configuration commands to the BMS currently a list format to show each register.
-void sendBMSConfigCommand(const char* command) {
+void sendBMSConfigCommand(const char* command, const char* valueStr) {
     uint8_t registerAddress;
-    uint16_t data;
+    uint16_t defaultData = 0;
+    uint16_t maxData = 0b1111111111111111; // Default max, will be set per register
 
-    // Map commands to register addresses and data values
-    if (strcmp(command, "CFG2_FILTERS_CYCLES") == 0) {
-        registerAddress = 0x04; // Activates what is been sensed and where the fets are.
-        data = 0x19FF;          // this activates all sensors and deactivates crc, ovc and sc_en. Fets left in default
-    }else if (strcmp(command, "TO_PRDV_BAL_MSK") == 0) {
-        registerAddress = 0x13; // These are masking bits. they prevent the device tripping the fets or relevant registers if an error is detected. this will want to be implemented in future.
-        data = 0x7FFF;          // set to mask all but the highest bit, this is unused.
+    // Map commands to register addresses, default values, and max values (all in binary)
+    if (strcmp(command, "CFG1_FILTERS_CYCLES") == 0) {
+        registerAddress = 0x04;
+        defaultData = 0b0001100111111111; // 0x19FF
+        maxData    = 0b0000111111111111; // 0x0FFF
+    } else if (strcmp(command, "TO_PRDV_BAL_MSK") == 0) {
+        registerAddress = 0x13;
+        defaultData = 0b0111111111111111; // 0x7FFF
+        maxData    = 0b0111111111111111; // 0x7FFF
     } else if (strcmp(command, "TO_FUSE_RST_MSK") == 0) {
-        registerAddress = 0x14; // Mask the actuation of the fuse. these arent in use on the board but could be in future.
-        data = 0x007F;          // Activate all but the unused bits. 
+        registerAddress = 0x14;
+        defaultData = 0b0000000001111111; // 0x007F
+        maxData    = 0b0000000001111111; // 0x007F
     } else if (strcmp(command, "TO_FAULTN_MSK") == 0) {
-        registerAddress = 0x15; // Masking the  faultn pin, this is the most likely register to be changed in future as can directly be sensed from the teensy.
-        data = 0x0FFF;          // Mask all for now. Last four bits unused
+        registerAddress = 0x15;
+        defaultData = 0b0000111111111111; // 0x0FFF
+        maxData    = 0b0000111111111111; // 0x0FFF
     } else if (strcmp(command, "CURR_MSK") == 0) {
-        registerAddress = 0x16; // More masking registers. pertaining to current.
-        data = 0x0FFF;          // mask all for now. Last four bits unused
-    }  else if (strcmp(command, "DIAG_OV_OT_UT") == 0) {
-        registerAddress = 0x2A; // These are all diagnostic flags this command will reset them, can expand on them to be read ata a later date.
-        data = 0x0000;          // Set to clear the fault counters and flags
+        registerAddress = 0x16;
+        defaultData = 0b0000111111111111; // 0x0FFF
+        maxData    = 0b0000111111111111; // 0x0FFF
+    } else if (strcmp(command, "DIAG_OV_OT_UT") == 0) {
+        registerAddress = 0x2A;
+        defaultData = 0b0000000000000000; // 0x0000
+        maxData    = 0b1111111111111111; // 0xFFFF
     } else if (strcmp(command, "DIAG_UV") == 0) {
-        registerAddress = 0x2B; // Registers that denote under voltage events.
-        data = 0x0000;          // Set to clear the fault counters and flags
+        registerAddress = 0x2B;
+        defaultData = 0b0000000000000000; // 0x0000
+        maxData    = 0b1111111111111111; // 0xFFFF
     } else if (strcmp(command, "DIAG_CURR") == 0) {
-        registerAddress = 0x2F; // Diagnostic flags for current events.
-        data = 0x0000;          // For now wipes the flags.
+        registerAddress = 0x2F;
+        defaultData = 0b0000000000000000; // 0x0000
+        maxData    = 0b1111111111111111; // 0xFFFF
     } else {
         Serial.println("Unknown Config command.");
         return;
     }
 
+    uint16_t data = 0;
+    if (strcmp(valueStr, "default") == 0) {
+        data = defaultData;
+    } else if (strncmp(valueStr, "0b", 2) == 0) {
+        data = (uint16_t)strtol(valueStr + 2, nullptr, 2);
+        if (data > maxData) {
+            Serial.print("Warning: Value ");
+            Serial.print(valueStr);
+            Serial.print(" exceeds max allowed for ");
+            Serial.print(command);
+            Serial.print(". Capping to 0b");
+            for (int i = 15; i >= 0; --i) Serial.print((maxData >> i) & 1);
+            Serial.println();
+            data = maxData;
+        }
+    } else {
+        Serial.println("Error: Value must be \"default\" or a binary string like \"0b101010\".");
+        return;
+    }
+
     //Checks if conversion is active and if so turns it off.
-    // This is to ensure that the BMS is not in conversion mode while writing Data.
     if (bmsConversionActive == 1) {
         setBMSConversionState("CONVERSION_OFF");
-        
     }
     writeBMSData(0x49, registerAddress, data);
 
     Serial.print("Config Command sent: ");
     Serial.print(command);
     Serial.print(" with data 0x");
-    Serial.println(data, HEX);
-    delay(10); // Add a delay to ensure the command is processed
+    Serial.print(data, HEX);
+    Serial.print(" (binary: ");
+    for (int i = 15; i >= 0; --i) Serial.print((data >> i) & 1);
+    Serial.println(")");
+    delay(10);
 }
 
 
@@ -140,3 +170,56 @@ void sendBMSIdentityCommand(const char* command, uint16_t data) {
     Serial.print(" with data 0x");
     Serial.println(data, HEX);
 }
+
+
+void sendBMSRealTimeCommand(const char* command) {
+    uint8_t registerAddress;
+    uint16_t data;
+
+    // Map commands to register addresses and data values
+    if (strcmp(command, "BAL_ENABLE") == 0) {
+        registerAddress = 0x01; // Register address to interface with balancing fets
+        data = 0x001F;          // set balancing on
+    } else if (strcmp(command, "BAL_DISABLE") == 0) {
+        registerAddress = 0x01; // Register address to interface with balancing fets
+        data = 0x0000;          // Set balancing off
+    } else if (strcmp(command, "GO2SHIP") == 0) {
+        registerAddress = 0x21; // Sends the device to ship mode. this is a low power mode.
+        data = 0x2000;          // Sends the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
+    } else if (strcmp(command, "GO2STBY") == 0) {
+        registerAddress = 0x22; // Sends the chip to standby mode. this is a low power mode.
+        data = 0x2000;          // sets the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
+    } else if (strcmp(command, "FUSE_TRIG_DISARM") == 0) {
+        registerAddress = 0x23; // turns off the fuse
+        data = 0x1000;          // 
+    } else if (strcmp(command, "FUSE_TRIG_ARM") == 0) {
+        registerAddress = 0x23; // turns on the fuse
+        data = 0x2000;          // set all high as is opposite the default
+    } else if (strcmp(command, "FUSE_TRIG_FIRE_INTERRUPT") == 0) {
+        registerAddress = 0x24; // Stops the fuse from firing
+        data = 0x1000;          // set to 1 on the 13th bit to stop the fuse from firing.
+    } else if (strcmp(command, "FUSE_TRIG_FIRE") == 0) {
+        registerAddress = 0x24; // A read/write bit that can be actuated by the BMS or the MCU.
+        data = 0x2000;          // this will fire on command.
+    }  else {
+        Serial.println("Unknown Real Time command.");
+        return;
+    }
+
+    //Checks if conversion is active and if so turns it off.
+    // This is to ensure that the BMS is not in conversion mode while writing configuration data.
+    if (bmsConversionActive == 1) {
+        setBMSConversionState("CONVERSION_OFF");
+        
+    }
+    writeBMSData(0x49, registerAddress, data);
+
+    Serial.print("BMS Command sent: ");
+    Serial.print(command);
+    Serial.print(" with data 0x");
+    Serial.println(data, HEX);
+}
+
+
+
+//eventually the BAL_enable command needs to be modified so it can operate with the chg and discharge fets.

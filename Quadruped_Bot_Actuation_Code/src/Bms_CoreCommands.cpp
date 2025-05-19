@@ -13,8 +13,16 @@
 #include "PinAssignments.h"
 #include "BMS_CoreCommands.h" // Include the header file for BMS I2C functions
 
+//set your current sense resistor here. 9mΩ is the default value for the L9961
+float senseResistor = 0.008f; // 8 mΩ = 0.008 Ω (can be changed elsewhere)
+const float voltageLimitRangeExt = 0.300f; // 300mV as per datasheet
 
+float Imax = voltageLimitRangeExt / senseResistor;
+float Vcur_res = voltageLimitRangeExt / 32767.0f; // 32767 = max positive value for 16-bit signed integer
 
+const float VCELL_RES = 0.00122f; // Example value, check your datasheet
+const float VB_RES = 0.0061f; // 6.1mV
+const float VNTC_RES = 0.000806f; // 0.806mV
 
 int bmsConversionActive = 0; // 1 = ON, 0 = OFF This variable is used in the config and identity functions to keep track of if the measuring registers are changing.
 
@@ -82,53 +90,7 @@ void setBMSConversionState(const char* state) {
 }
 
 
-void sendBMSCommand(const char* command) {
-    uint8_t registerAddress;
-    uint16_t data;
 
-    // Map commands to register addresses and data values
-    if (strcmp(command, "BAL_ENABLE") == 0) {
-        registerAddress = 0x01; // Register address to interface with balancing fets
-        data = 0x001F;          // set balancing on
-    } else if (strcmp(command, "BAL_DISABLE") == 0) {
-        registerAddress = 0x01; // Register address to interface with balancing fets
-        data = 0x0000;          // Set balancing off
-    } else if (strcmp(command, "GO2SHIP") == 0) {
-        registerAddress = 0x21; // Sends the device to ship mode. this is a low power mode.
-        data = 0x2000;          // Sends the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
-    } else if (strcmp(command, "GO2STBY") == 0) {
-        registerAddress = 0x22; // Sends the chip to standby mode. this is a low power mode.
-        data = 0x2000;          // sets the 10 to 13th-14th bit note as with all write commands sets the read only registers zero, erasing the information.
-    } else if (strcmp(command, "FUSE_TRIG_DISARM") == 0) {
-        registerAddress = 0x23; // turns off the fuse
-        data = 0x1000;          // 
-    } else if (strcmp(command, "FUSE_TRIG_ARM") == 0) {
-        registerAddress = 0x23; // turns on the fuse
-        data = 0x2000;          // set all high as is opposite the default
-    } else if (strcmp(command, "FUSE_TRIG_FIRE_INTERRUPT") == 0) {
-        registerAddress = 0x24; // Stops the fuse from firing
-        data = 0x1000;          // set to 1 on the 13th bit to stop the fuse from firing.
-    } else if (strcmp(command, "FUSE_TRIG_FIRE") == 0) {
-        registerAddress = 0x24; // A read/write bit that can be actuated by the BMS or the MCU.
-        data = 0x2000;          // this will fire on command.
-    }  else {
-        Serial.println("Unknown Real Time command.");
-        return;
-    }
-
-    //Checks if conversion is active and if so turns it off.
-    // This is to ensure that the BMS is not in conversion mode while writing configuration data.
-    if (bmsConversionActive == 1) {
-        setBMSConversionState("CONVERSION_OFF");
-        
-    }
-    writeBMSData(0x49, registerAddress, data);
-
-    Serial.print("BMS Command sent: ");
-    Serial.print(command);
-    Serial.print(" with data 0x");
-    Serial.println(data, HEX);
-}
 
 
 

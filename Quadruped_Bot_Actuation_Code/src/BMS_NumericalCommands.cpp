@@ -19,18 +19,6 @@
 
 
 
-float senseResistor = 0.008f; // 8 mΩ = 0.008 Ω (default, can be changed elsewhere)
-const float voltageLimitRangeExt = 0.300f; // 300mV as per datasheet
-
-float Imax = voltageLimitRangeExt / senseResistor;
-float Vcur_res = voltageLimitRangeExt / 32767.0f; // 32767 = max positive value for 16-bit signed integer
-
-const float VCELL_RES = 0.00122f; // Example value, check your datasheet
-const float VB_RES = 0.0061f; // 6.1mV
-const float VNTC_RES = 0.000806f; // 0.806mV
-
-
-
 void sendBMSNumericalCommand(const char* command, const char* arg1, const char* arg2) {
 
 //when passing arguments pass the command, the 8lsb argumennt, and the 8msb argument.

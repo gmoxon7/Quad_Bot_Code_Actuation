@@ -18,13 +18,21 @@
 extern int bmsConversionActive;
 
 
+extern float senseResistor;
+extern const float voltageLimitRangeExt;
+extern float Imax;
+extern float Vcur_res;
+extern const float VCELL_RES;
+extern const float VB_RES;
+extern const float VNTC_RES;
+
 // simple basic forms of functions.
 uint16_t readBMSData(uint8_t chipAddress, uint8_t registerAddress);
 void writeBMSData(uint8_t chipAddress, uint8_t registerAddress, uint16_t data);
 
 //commands that use chars for the command name.
 void setBMSConversionState(const char* state);
-void sendBMSCommand(const char* command);
+
 
 
 
