@@ -20,6 +20,6 @@
 #include "BMS_NumericalCommands.h"
 
 
-void setUpBMS();
+void SetUpBMS();
 
 #endif

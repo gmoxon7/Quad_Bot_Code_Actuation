@@ -24,7 +24,7 @@
 
 
 void sendBMSIdentityCommand(const char* command, uint16_t data);
-void sendBMSConfigCommand(const char* command);
+void sendBMSConfigCommand(const char* command, const char* valueStr);
 void RWBMSNVM(const char* command);
 void sendBMSRealTimeCommand(const char* command);
 

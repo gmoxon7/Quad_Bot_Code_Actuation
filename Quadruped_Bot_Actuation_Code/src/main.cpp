@@ -29,6 +29,9 @@
 #include "BMS_SetupCommands.h" // Include the BMS setup commands header file
 #include "BMS_NumericalCommands.h" // Include the BMS numerical commands header file
 
+#include "BMS_ReadCommands.h" // Include the BMS read commands header file
+#include "SetUpBMS.h" // Include the BMS setup header file
+
 
 
 #include <Wire.h>
@@ -127,7 +130,7 @@ delay(1000); //delay for the control board to initialize
   resetEncoder(14);
   resetEncoder(15);
 
-
+  SetUpBMS(); // Call the setup function for the BMS
 
   
 }
@@ -190,18 +193,12 @@ void loop() {
   // delay(1000); // Wait for 5 second
 
  
+  uint32_t manufacturerName = readManufacturerName();
+  Serial.print("Manufacturer Name: 0x");
+  Serial.println(manufacturerName, HEX);
+  delay(5000); // Wait for 5 seconds
 
-  uint16_t data = readBMSData(chipAddress, registerAddress);
-    Serial.print("Data read from L9961: 0x");
-    Serial.println(data, HEX);
-    delay(5000); // Wait for 1 second
-
-  sendBMSIdentityCommand("DEVICE_NAME_LSB", 0x1234); // Replace 0x1234 with your actual data
-  
-  data = readBMSData(chipAddress, 0x1e); // Read the device name LSB register
-    Serial.print("Data read from L9961: 0x");
-    Serial.println(data, HEX);
-    delay(5000); // Wait for 5 second
+  sendBMSIdentityCommand("MANUFACTURE_NAME_LSB", 0x1234);
 
  }
 

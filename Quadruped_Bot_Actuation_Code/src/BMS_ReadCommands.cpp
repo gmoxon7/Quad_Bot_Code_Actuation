@@ -14,7 +14,7 @@
 #include "BMS_CoreCommands.h" // Include the header file for BMS core commands
 #include "PinAssignments.h" // Include the header file for pin assignments
 
-
+//be sure to integrate interrupts for the BMS chip to ensure that the data is not being read while the chip is in conversion mode.
 
 
 //code to read cell voltages. 12bits across a range of 5V
@@ -121,34 +121,34 @@ CoulombCountResult readCoulombCounter() {
     return result;
 }
 
-// Manufacturer Name (32-bit, from 0x30 MSB and 0x31 LSB)
+// Manufacturer Name (32-bit, from 0x17 MSB and 0x18 LSB)
 uint32_t readManufacturerName() {
-    uint16_t msb = readBMSData(0x49, 0x30);
-    uint16_t lsb = readBMSData(0x49, 0x31);
+    uint16_t msb = readBMSData(0x49, 0x17);
+    uint16_t lsb = readBMSData(0x49, 0x18);
     return ((uint32_t)msb << 16) | lsb;
 }
 
-// Manufacturer Date (16-bit, from 0x32)
+// Manufacturer Date (16-bit, from 0x19)
 uint16_t readManufacturerDate() {
-    return readBMSData(0x49, 0x32);
+    return readBMSData(0x49, 0x19);
 }
 
-// First Usage Date (16-bit, from 0x33)
+// First Usage Date (16-bit, from 0x1A)
 uint16_t readFirstUsageDate() {
-    return readBMSData(0x49, 0x33);
+    return readBMSData(0x49, 0x1A);
 }
 
-// Serial Number (32-bit, from 0x34 MSB and 0x35 LSB)
+// Serial Number (32-bit, from 0x1B MSB and 0x1C LSB)
 uint32_t readSerialNumber() {
-    uint16_t msb = readBMSData(0x49, 0x34);
-    uint16_t lsb = readBMSData(0x49, 0x35);
+    uint16_t msb = readBMSData(0x49, 0x1B);
+    uint16_t lsb = readBMSData(0x49, 0x1C);
     return ((uint32_t)msb << 16) | lsb;
 }
 
-// Device Name (32-bit, from 0x36 MSB and 0x37 LSB)
+// Device Name (32-bit, from 0x1D MSB and 0x1E LSB)
 uint32_t readDeviceName() {
-    uint16_t msb = readBMSData(0x49, 0x36);
-    uint16_t lsb = readBMSData(0x49, 0x37);
+    uint16_t msb = readBMSData(0x49, 0x1D);
+    uint16_t lsb = readBMSData(0x49, 0x1E);
     return ((uint32_t)msb << 16) | lsb;
 }
 

@@ -3,6 +3,11 @@
 // Implementation of I2C functions for reading and writing data to the L9961 BMS (Battery Management System) module.
 // Includes functions for register access, conversion state control, and real-time BMS commands.
 //
+// There are some places where values need to be configured in this function. 
+// cellStackSize, cellfilter, currentFilter, and senseResistor are all going to fit to your preferances.
+//
+//
+//
 // Author: Greg Moxon
 // Organisation: Moxon Electronics
 // Created: 2024-05-16
@@ -14,7 +19,36 @@
 #include "BMS_CoreCommands.h" // Include the header file for BMS I2C functions
 
 //set your current sense resistor here. 9mΩ is the default value for the L9961
+
+//how many cells are you using? 3-5 cells are supported by the L9961.
+int cellStackSize = 5; // set to your actual number of cells (3-5 for your system)
+//use thes values to decide how long to filter voltage and current information. see datasheet CUR_FILTER and CELL_FILTER fields for details. 
+uint8_t currentFilter = 3; // Range: 0 to 3, uses only two bits
+uint8_t cellFilter = 3; // Range: 0 to 3, uses only two bits
+uint8_t shortcircuitFilter = 3; // Range: 0 to 3, uses only two bits
+uint8_t measureCycle =31; // range 0-31, this is the number of conversion cycles to average over. 31 is the maximum value and will give the best results.
+// specific to your design. how big is the sense resistor your using
 float senseResistor = 0.008f; // 8 mΩ = 0.008 Ω (can be changed elsewhere)
+
+
+
+uint8_t cellMask = ((1 << cellStackSize) - 1) & 0b11111; // e.g., 3 cells: 0b00111, 5 cells: 0b11111 capped at 5
+
+// Initialize cellFilterFloat based on cellFilter value, this is the number of microseconds for a conversion.
+uint8_t cellFilter = 0; // Range: 0 to 3, uses only two bits
+
+// Initialize cellFilterInt based on cellFilter value, in microseconds
+uint32_t cellFilterInt = (cellFilter == 0) ? 800 :
+                         (cellFilter == 1) ? 1310 :
+                         (cellFilter == 2) ? 4380 :
+                         (cellFilter == 3) ? 16670 : 800;
+// Create a bitmask where each cell uses one bit, all set to 1 for the number of cells
+
+// Calculate current filter float value (528 microseconds * 2^(3 + currentFilter)) 4.22ms to 33.79ms
+uint32_t currentFilterInt = 528 * (1 << (3 + currentFilter)); // in microseconds
+uint32_t measureCycleInt = 1000 * (1 << (3 + measureCycle)); // in microseconds
+
+
 const float voltageLimitRangeExt = 0.300f; // 300mV as per datasheet
 
 float Imax = voltageLimitRangeExt / senseResistor;

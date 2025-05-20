@@ -21,44 +21,48 @@
 
 // Function to send identity commands to the BMS
 
-void setUpBMS() {
+void SetUpBMS() {
 
-	//RWBMSNVM("NVM_2_UL"); // This is the command to commit the DATA from the NVM TO I2C, this should be called on startup.	
+    //RWBMSNVM("NVM_2_UL"); // This is the command to commit the DATA from the NVM TO I2C, this should be called on startup.	
+
+    // Configure main filter and conversion cycles (affects ADC filtering and speed)
+    sendBMSConfigCommand("CFG1_FILTERS_CYCLES", "default");
+
+    // Configure which cells are enabled for balancing
+    sendBMSConfigCommand("TO_PRDV_BAL_MSK", "default");
+
+    // Configure which fuses are enabled for reset (controls fuse reset mask)
+    sendBMSConfigCommand("TO_FUSE_RST_MSK", "default");
+
+    // Configure which faults are enabled for nFAULT pin signaling
+    sendBMSConfigCommand("TO_FAULTN_MSK", "default");
+
+    // Configure current measurement mask (enables/disables current sensing)
+    sendBMSConfigCommand("CURR_MSK", "default");
+
+    // Configure which overvoltage, overtemperature, and undertemperature diagnostics are enabled
+    sendBMSConfigCommand("DIAG_OV_OT_UT", "default");
+
+    // Configure which undervoltage diagnostics are enabled
+    sendBMSConfigCommand("DIAG_UV", "default");
+
+    // Configure which current diagnostics are enabled
+    sendBMSConfigCommand("DIAG_CURR", "default");
+
+    // Example: Send identity commands (replace 0x1234 with your actual data)
+    sendBMSIdentityCommand("MANUFACTURE_NAME_MSB", 0x1234);
+    sendBMSIdentityCommand("MANUFACTURE_NAME_LSB", 0x5678);
+    sendBMSIdentityCommand("MANUFACTURING_DATE", 0x2025);
+    sendBMSIdentityCommand("FIRST_USAGE_DATE", 0x2025);
+    sendBMSIdentityCommand("SERIAL_NUMBER_MSB", 0xABCD);
+    sendBMSIdentityCommand("SERIAL_NUMBER_LSB", 0xEF01);
+    sendBMSIdentityCommand("DEVICE_NAME_MSB", 0x1357);
+    sendBMSIdentityCommand("DEVICE_NAME_LSB", 0x2468);
 
 
 
-/*
-    // Activates what is being sensed and where the FETs are.
-    // This activates all sensors and deactivates CRC, OVC, and SC_EN. FETs left in default.
-    sendBMSConfigCommand("CFG2_FILTERS_CYCLES");
-
-    // These are masking bits. They prevent the device tripping the FETs or relevant registers if an error is detected.
-    // This will want to be implemented in future.
-    sendBMSConfigCommand("TO_PRDV_BAL_MSK");
-
-    // Mask the actuation of the fuse. These aren't in use on the board but could be in future.
-    sendBMSConfigCommand("TO_FUSE_RST_MSK");
-
-    // Masking the FAULTN pin. This is the most likely register to be changed in future as it can be directly sensed from the Teensy.
-    sendBMSConfigCommand("TO_FAULTN_MSK");
-
-    // More masking registers, pertaining to current.
-    sendBMSConfigCommand("CURR_MSK");
-
-    
-    // These are all diagnostic flags. This command will reset them; can expand on them to be read at a later date.
-    sendBMSConfigCommand("DIAG_OV_OT_UT");
-
-    // Registers that denote under voltage events.
-    sendBMSConfigCommand("DIAG_UV");
-
-    // Diagnostic flags for current events. For now wipes the flags.
-    sendBMSConfigCommand("DIAG_CURR");
 
 
-
-
-/*
 
 	// Set CSA gain factor (current sense amplifier gain)
 	// Range: 0x0000 (min) to 0xFFFF (max), default: 0x8000
@@ -123,7 +127,7 @@ void setUpBMS() {
 	// Set short-circuit threshold and persistence threshold
 	// Current: ~6.1A (min, depends on senseResistor) to ~32.5A (max, depends on senseResistor), default: 100A
 	sendBMSNumericalCommand("SC_THRESHOLD", "max", "max");
-    */
+    
 
 
 }

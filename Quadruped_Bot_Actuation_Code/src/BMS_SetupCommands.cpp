@@ -23,7 +23,7 @@ void sendBMSConfigCommand(const char* command, const char* valueStr) {
     uint16_t maxData = 0b1111111111111111; // Default max, will be set per register
 
     // Map commands to register addresses, default values, and max values (all in binary)
-    if (strcmp(command, "CFG1_FILTERS_CYCLES") == 0) {
+    if (strcmp(command, "CFG2_ENABLES") == 0) {
         registerAddress = 0x04;
         defaultData = 0b0001100111111111; // 0x19FF
         maxData    = 0b0000111111111111; // 0x0FFF
