@@ -22,11 +22,18 @@
 // Function to send identity commands to the BMS
 
 void SetUpBMS() {
+	
+
+
+	
 
     //RWBMSNVM("NVM_2_UL"); // This is the command to commit the DATA from the NVM TO I2C, this should be called on startup.	
 
     // Configure main filter and conversion cycles (affects ADC filtering and speed)
     sendBMSConfigCommand("CFG1_FILTERS_CYCLES", "default");
+
+	// Configure What to read and record.
+	sendBMSConfigCommand("CFG2_ENABLES", "default");
 
     // Configure which cells are enabled for balancing
     sendBMSConfigCommand("TO_PRDV_BAL_MSK", "default");

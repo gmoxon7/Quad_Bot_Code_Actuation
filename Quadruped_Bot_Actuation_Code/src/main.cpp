@@ -91,6 +91,8 @@ digitalWrite(EN_PIN, LOW);
 digitalWrite(NRESET, LOW);
 digitalWrite(SERVO_REG_ENABLE, LOW);
 
+
+
 delay(1000); //delay for the control board to initialize
 
   Serial.begin(9600);
@@ -131,17 +133,17 @@ delay(1000); //delay for the control board to initialize
   resetEncoder(15);
 
   SetUpBMS(); // Call the setup function for the BMS
+  attachInterrupt(digitalPinToInterrupt(RDY), onBMSReadyRise, RISING);
 
-  
+  setBMSConversionState("CONVERSION_ON");  // To turn conversions ON
 }
 
 
 
 
-void loop() {
-  // put your main code here, to run repeatedly:
-  //I2C multiplexer channel select and read code.
 
+
+void loop() {
     // Example: Switch to channel 5
     //I2C_SelectChannel(0x70, 4);
     //delay(2000);
@@ -193,12 +195,51 @@ void loop() {
   // delay(1000); // Wait for 5 second
 
  
-  uint32_t manufacturerName = readManufacturerName();
-  Serial.print("Manufacturer Name: 0x");
-  Serial.println(manufacturerName, HEX);
-  delay(5000); // Wait for 5 seconds
 
-  sendBMSIdentityCommand("MANUFACTURE_NAME_LSB", 0x1234);
+
+  // uint16_t mfgDate = readManufacturerDate();
+  // Serial.print("Manufacturer Date: 0x");
+  // Serial.println(mfgDate, HEX);
+  
+  
+  // delay(10); // Wait for the conversion to stabilize
+
+
+
+  // // Read and print the cell sum voltage only if data is valid
+  // if (isBMSDataValid()) {
+  //   float cellSum = readVCellSum();
+  //   Serial.print("BMS CellSum: ");
+  //   Serial.println(cellSum, 3); // Print with 3 decimal places
+  //   bmsDataReady = false; // Mark data as read
+
+  // } else {
+  //   Serial.println("BMS data expired, waiting for next conversion...");
+
+  float current = readCurrent();
+  Serial.print("BMS Current: ");
+  Serial.println(current, 3); // Print with 3 decimal places
+
+
+
+  // Read and print the coulomb counter result
+    CoulombCountResult cc = readCoulombCounter();
+    Serial.print("Coulombs: ");
+    Serial.println(cc.coulombs, 6); // Print with 6 decimal places
+    Serial.print("Sample Count: ");
+    Serial.println(cc.sampleCount);
+
+    delay(6000); // Adjust delay as needed
+    
+  // }
+
+
+
+
+
+
+  
+  
 
  }
 

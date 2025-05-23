@@ -26,7 +26,7 @@ void sendBMSConfigCommand(const char* command, const char* valueStr) {
     if (strcmp(command, "CFG2_ENABLES") == 0) {
         registerAddress = 0x04;
         defaultData = 0b0001100111111111; // 0x19FF
-        maxData    = 0b0000111111111111; // 0x0FFF
+        maxData    = 0b0011111111111111; // 0x3FFF
     } else if (strcmp(command, "TO_PRDV_BAL_MSK") == 0) {
         registerAddress = 0x13;
         defaultData = 0b0111111111111111; // 0x7FFF

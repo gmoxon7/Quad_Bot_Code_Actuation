@@ -26,13 +26,20 @@ extern const float VCELL_RES;
 extern const float VB_RES;
 extern const float VNTC_RES;
 
+
+extern volatile bool bmsDataReady;
+extern volatile unsigned long bmsDataTimestamp;
+
+extern uint32_t currentFilterInt;
+
 // simple basic forms of functions.
 uint16_t readBMSData(uint8_t chipAddress, uint8_t registerAddress);
 void writeBMSData(uint8_t chipAddress, uint8_t registerAddress, uint16_t data);
 
 //commands that use chars for the command name.
 void setBMSConversionState(const char* state);
-
+void onBMSReadyRise(); // Interrupt Service Routine for RDY positive edge
+bool isBMSDataValid(); // Checks to see if rdy pulse occured within time window before next conversion started.
 
 
 

@@ -52,7 +52,7 @@ float readVCell5() {
 float readVCellSum() {
     uint16_t raw = readBMSData(0x49, 0x26);
     uint16_t sumBits = raw & 0x7FFF; // 15 bits: mask with 0b0111111111111111
-    return (sumBits / 32767.0f) * 25.0f; // 25V range
+    return (sumBits / 4095.0f) * 5.0f; // 25V range
 }
 
 
@@ -87,7 +87,7 @@ float readCurrent() {
     // Example: float voltageLimitRangeExt = 0.3f; // 300mV
     // Example: float senseResistor = 0.008f; // 8 mΩ
 
-    float measuredVoltage = (signedRaw / 32767.0f) * voltageLimitRangeExt;
+    float measuredVoltage = (signedRaw  * (voltageLimitRangeExt /  32767.0f));
     float current = measuredVoltage / senseResistor;
 
     return current;
@@ -95,7 +95,9 @@ float readCurrent() {
 
 
 CoulombCountResult readCoulombCounter() {
-    setBMSConversionState("CONVERSION_OFF");
+    
+    writeBMSData(0x49, 0x2D, 0xFFFF); // Reset the Coulomb counter
+
 
     uint16_t msb = readBMSData(0x49, 0x2D);      // 16 MSB
     uint16_t lsb_and_count = readBMSData(0x49, 0x2E); // 8 MSB (accumulator), 8 LSB (sample count)
@@ -108,17 +110,18 @@ CoulombCountResult readCoulombCounter() {
     // Scaling: same as current reading, but for 24 bits
     // Max positive = 0x7FFFFF, max negative = -0x800000
     // Use voltageLimitRangeExt and senseResistor as in current reading
-    float measuredVoltage = (signedAcc / 8388607.0f) * voltageLimitRangeExt; // 8388607 = 0x7FFFFF
-    float coulombs = measuredVoltage / senseResistor;
+    float measuredVoltage = (signedAcc * (voltageLimitRangeExt / 32767.0f)); // 8388607 = 0x7FFFFF
+    float coulombs = ((measuredVoltage / senseResistor) * currentFilterInt/1000000.0f);
 
     uint8_t sampleCount = lsb_and_count & 0xFF;
 
-    setBMSConversionState("CONVERSION_ON");
-
+    
     CoulombCountResult result;
     result.coulombs = coulombs;
     result.sampleCount = sampleCount;
     return result;
+
+    // Currently accurate to 0.005A over estimating sample. will need to test with larger load to see how much of an impact is causing.
 }
 
 // Manufacturer Name (32-bit, from 0x17 MSB and 0x18 LSB)

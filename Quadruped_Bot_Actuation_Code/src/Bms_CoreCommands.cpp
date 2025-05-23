@@ -18,24 +18,23 @@
 #include "PinAssignments.h"
 #include "BMS_CoreCommands.h" // Include the header file for BMS I2C functions
 
-//set your current sense resistor here. 9mΩ is the default value for the L9961
 
+
+
+//set your current sense resistor here. 9mΩ is the default value for the L9961
+// Clamp values to valid ranges
 //how many cells are you using? 3-5 cells are supported by the L9961.
 int cellStackSize = 5; // set to your actual number of cells (3-5 for your system)
-//use thes values to decide how long to filter voltage and current information. see datasheet CUR_FILTER and CELL_FILTER fields for details. 
 uint8_t currentFilter = 3; // Range: 0 to 3, uses only two bits
-uint8_t cellFilter = 3; // Range: 0 to 3, uses only two bits
-uint8_t shortcircuitFilter = 3; // Range: 0 to 3, uses only two bits
-uint8_t measureCycle =31; // range 0-31, this is the number of conversion cycles to average over. 31 is the maximum value and will give the best results.
+uint8_t cellFilter = 3;    // Range: 0 to 3, uses only two bits
+uint8_t shortcircuitFilter = 7; // Range: 0 to 3, uses only two bits
+uint8_t measureCycle = 31; // range 1-31, this is the number of conversion cycles to average over. 31 is the maximum value and will give the best results.
 // specific to your design. how big is the sense resistor your using
 float senseResistor = 0.008f; // 8 mΩ = 0.008 Ω (can be changed elsewhere)
 
 
-
+// Create a bitmask for the cell stack size (3-5 cells)
 uint8_t cellMask = ((1 << cellStackSize) - 1) & 0b11111; // e.g., 3 cells: 0b00111, 5 cells: 0b11111 capped at 5
-
-// Initialize cellFilterFloat based on cellFilter value, this is the number of microseconds for a conversion.
-uint8_t cellFilter = 0; // Range: 0 to 3, uses only two bits
 
 // Initialize cellFilterInt based on cellFilter value, in microseconds
 uint32_t cellFilterInt = (cellFilter == 0) ? 800 :
@@ -46,8 +45,21 @@ uint32_t cellFilterInt = (cellFilter == 0) ? 800 :
 
 // Calculate current filter float value (528 microseconds * 2^(3 + currentFilter)) 4.22ms to 33.79ms
 uint32_t currentFilterInt = 528 * (1 << (3 + currentFilter)); // in microseconds
-uint32_t measureCycleInt = 1000 * (1 << (3 + measureCycle)); // in microseconds
 
+// Calculate measure cycle time in microseconds (10ms * measureCycle)
+uint32_t measureCycleInt = 10000 * measureCycle; // 10,000us = 10ms
+
+// code to analyse how long in  measure cycle the data is valid. compared to the interrupt.
+//unsure yet if CC needs factoring in this.
+uint32_t validWindow = measureCycleInt 
+                     - ((cellStackSize + 1) * cellFilterInt) 
+                     + 1600; // 2 * 0.8ms = 1600us
+
+
+
+// --- Interrupt variables and setup for RDY pin ---
+volatile bool bmsDataReady = false;
+volatile unsigned long bmsDataTimestamp = 0;
 
 const float voltageLimitRangeExt = 0.300f; // 300mV as per datasheet
 
@@ -59,6 +71,30 @@ const float VB_RES = 0.0061f; // 6.1mV
 const float VNTC_RES = 0.000806f; // 0.806mV
 
 int bmsConversionActive = 0; // 1 = ON, 0 = OFF This variable is used in the config and identity functions to keep track of if the measuring registers are changing.
+
+// Interrupt Service Routine for RDY positive edge
+void onBMSReadyRise() {
+    bmsDataReady = true;
+    bmsDataTimestamp = micros();
+    
+}
+
+
+/*// Call this in your setup() function to enable the interrupt
+void setupBMSReadyInterrupt() {
+    pinMode(RDY, INPUT);
+    attachInterrupt(digitalPinToInterrupt(RDY), onBMSReadyRise, RISING);
+}
+*/
+
+// Returns true if the converted data is still valid, false if expired
+bool isBMSDataValid() {
+    // Check if the current time is within the valid window after the RDY interrupt
+    return (micros() < (bmsDataTimestamp + validWindow));
+}
+
+
+
 
 // Single Read Function for L9961
 uint16_t readBMSData(uint8_t chipAddress, uint8_t registerAddress) {
@@ -115,16 +151,22 @@ void setBMSConversionState(const char* state) {
         bmsConversionActive = 0;
         Serial.println("Conversion OFF command sent.");
     } else if (strcmp(state, "CONVERSION_ON") == 0) {
-        writeBMSData(0x49, 0x02, 0x0FFF); // Conversion on: register 0x02, data 0x0FFF conversions occur every 310ms
+        // [12:7] measureCycle (5 bits)
+        // [6:5]  currentFilter (2 bits)
+        // [4:2]  shortcircuitFilter (3 bits)
+        // [1:0]  cellFilter (2 bits)
+        
+        uint16_t conversionOnValue =
+            ((measureCycle       & 0x1F) << 7)  | // 5 bits
+            ((currentFilter      & 0x03) << 5)  | // 2 bits
+            ((shortcircuitFilter & 0x07) << 2)  | // 3 bits
+            ((cellFilter         & 0x03) << 0);   // 2 bits
+
+        writeBMSData(0x49, 0x02, conversionOnValue); // Conversion on with custom settings
         bmsConversionActive = 1;
-        Serial.println("Conversion ON command sent.");
+        Serial.print("Conversion ON command sent. Register value: 0x");
+        Serial.println(conversionOnValue, HEX);
     } else {
         Serial.println("Unknown conversion state command.");
     }
 }
-
-
-
-
-
-
