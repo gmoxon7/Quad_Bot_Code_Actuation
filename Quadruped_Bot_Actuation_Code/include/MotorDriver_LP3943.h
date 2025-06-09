@@ -31,7 +31,8 @@ void motorDriverInit(uint8_t mux_channel, uint8_t address);
 void motorDriverRegControl(uint8_t mux_channel, uint8_t address, bool enable);
 void variableMotionControl(uint8_t mux_channel, uint8_t address, uint8_t speed, bool direction);
 void setMotionControl(uint8_t mux_channel, uint8_t address, uint8_t speedOne, uint8_t speedTwo);
-void defaultMotionControl(uint8_t mux_channel, uint8_t address, uint8_t defaultSpeed, uint8_t direction);
+void defaultMotionControl(uint8_t mux_channel, uint8_t address, uint8_t defaultSpeed, bool direction);
+void motorDriverStop(uint8_t mux_channel, uint8_t address);
 
 
 int8_t readLimitTriggers(uint8_t address);

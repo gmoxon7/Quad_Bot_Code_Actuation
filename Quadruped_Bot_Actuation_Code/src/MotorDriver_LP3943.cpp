@@ -60,7 +60,7 @@ void variableMotionControl(uint8_t mux_channel, uint8_t i2c_addr, uint8_t speed,
     I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel); // Select the appropriate channel on the I2C multiplexer
     
     // Set the speed and direction for the motor
-    I2C_WR(i2c_addr, 0x05, speed); // Write speed to register 0x05, this sets PWM1 in the chip to a certain duty cycle.
+    I2C_WR(i2c_addr, 0x05, 255- speed); // Write speed to register 0x05, this sets PWM1 in the chip to a certain duty cycle.
     
     if (direction) {
         I2C_WR(i2c_addr, 0x07, 0xC4); // Set direction to forward (1)
@@ -80,6 +80,42 @@ void setMotionControl(uint8_t mux_channel, uint8_t i2c_addr, uint8_t speedOne, u
 }
 
 
-void 
+void defaultMotionControl(uint8_t mux_channel, uint8_t i2c_addr, uint8_t speedLevel, bool direction) {
+    I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel); // Select the appropriate channel on the I2C multiplexer
 
+    // Set speed bits (MSBs)
+    uint8_t speedBits = 0;
+    if (speedLevel == 3) {
+        speedBits = 0b00000000;
+    } else if (speedLevel == 2) {
+        speedBits = 0b11000000;
+    } else if (speedLevel == 1) {
+        speedBits = 0b10000000;
+    } else {
+        speedBits = 0b01000000; // Or set a default/fault value if needed
+    }
+
+    // Set direction code (6 LSBs)
+    uint8_t directionCode;
+    if (direction) {
+        directionCode = 0x04; // Example: forward code (replace with your value)
+    } else {
+        directionCode = 0x11; // Example: reverse code (replace with your value)
+    }
+
+    uint8_t regValue = speedBits | (directionCode & 0x3F);
+
+    // Write the combined value to the register (e.g., 0x07)
+    I2C_WR(i2c_addr, 0x07, regValue);
+}
+
+
+void motorDriverStop(uint8_t mux_channel, uint8_t i2c_addr) {
+
+    I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel); // Select the appropriate channel on the I2C multiplexer
+    
+    // Stop the motor by setting speed to 0
+    I2C_WR(i2c_addr, 0x07, 0x55); // Write 0 to register 0x05 to stop the motor
+    
+}
 

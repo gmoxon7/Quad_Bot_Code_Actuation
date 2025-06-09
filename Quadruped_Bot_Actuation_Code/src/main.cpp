@@ -181,61 +181,81 @@ delay(1000); //delay for the control board to initialize
 
 void loop() {
 
-  while (Serial.available() > 0) {
+    while (Serial.available() > 0) {
         char inChar = Serial.read();
         if (inChar == '\n' || inChar == '\r') {
             inputBuffer[inputPos] = '\0'; // Null-terminate
 
-            // Process the command
             Serial.print("Received command: ");
             Serial.println(inputBuffer);
 
-            // Parse "move" command with 4 arguments: move <mux_channel> <chip_address> <speed> <direction>
-            char cmd[8];
-            int mux_channel, chip_address, speed, directionInt;
-            if (sscanf(inputBuffer, "%s %d %d %d %d", cmd, &mux_channel, &chip_address, &speed, &directionInt) == 5) {
-                if (strcmp(cmd, "move") == 0) {
-                    bool direction = (directionInt != 0); // Convert int to bool
-                    variableMotionControl(mux_channel, chip_address, speed, direction);
-                    Serial.print("Moving motor on mux channel ");
-                    Serial.print(mux_channel);
-                    Serial.print(", chip address ");
-                    Serial.print(chip_address, HEX);
-                    Serial.print(", speed ");
-                    Serial.print(speed);
-                    Serial.print(", direction ");
-                    Serial.println(direction ? "true" : "false");
-                }
+            char cmd[16];
+            int mux_channel, chip_address, speed, directionInt, speedOne, speedTwo, speedLevel;
+
+            // "move" command
+            if (sscanf(inputBuffer, "%s %d %d %d %d", cmd, &mux_channel, &chip_address, &speed, &directionInt) == 5 && strcmp(cmd, "move") == 0) {
+                bool direction = (directionInt != 0);
+                variableMotionControl(mux_channel, chip_address, speed, direction);
+                Serial.print("Moving motor on mux channel ");
+                Serial.print(mux_channel);
+                Serial.print(", chip address ");
+                Serial.print(chip_address, HEX);
+                Serial.print(", speed ");
+                Serial.print(speed);
+                Serial.print(", direction ");
+                Serial.println(direction ? "true" : "false");
+
+            // "stop" command
+            } else if (sscanf(inputBuffer, "%s %d %d", cmd, &mux_channel, &chip_address) == 3 && strcmp(cmd, "stop") == 0) {
+                motorDriverStop(mux_channel, chip_address);
+                Serial.print("Stopped motor on mux channel ");
+                Serial.print(mux_channel);
+                Serial.print(", chip address ");
+                Serial.println(chip_address, HEX);
+
+            // "defaultmove" command
+            } else if (sscanf(inputBuffer, "%s %d %d %d %d", cmd, &mux_channel, &chip_address, &speedLevel, &directionInt) == 5 && strcmp(cmd, "defaultmove") == 0) {
+                bool direction = (directionInt != 0);
+                defaultMotionControl(mux_channel, chip_address, speedLevel, direction);
+                Serial.print("Default move on mux channel ");
+                Serial.print(mux_channel);
+                Serial.print(", chip address ");
+                Serial.print(chip_address, HEX);
+                Serial.print(", speed level ");
+                Serial.print(speedLevel);
+                Serial.print(", direction ");
+                Serial.println(direction ? "true" : "false");
+
+            // "setspeeds" command
+            } else if (sscanf(inputBuffer, "%s %d %d %d %d", cmd, &mux_channel, &chip_address, &speedOne, &speedTwo) == 5 && strcmp(cmd, "setspeeds") == 0) {
+                setMotionControl(mux_channel, chip_address, speedOne, speedTwo);
+                Serial.print("Set speeds on mux channel ");
+                Serial.print(mux_channel);
+                Serial.print(", chip address ");
+                Serial.print(chip_address, HEX);
+                Serial.print(", speedOne ");
+                Serial.print(speedOne);
+                Serial.print(", speedTwo ");
+                Serial.println(speedTwo);
+
             } else if (strcmp(inputBuffer, "abc") == 0) {
                 Serial.println("Running test for 'abc'!");
             } else if (strcmp(inputBuffer, "a") == 0) {
                 Serial.println("Running test A...");
                 // ...test A code...
-                packVoltage = readPackSense();
-                Serial.print( "\n Pack Voltage: ");
-                Serial.println(packVoltage);
 
-                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, false); // Enable the motor driver LP3943 on channel 7
-                delay(1000); // Wait for 1 second
+                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, false);
+                delay(1000);
 
-                packVoltage = readPackSense();
-                Serial.print( "\n Pack Voltage: ");
-                Serial.println(packVoltage);
 
             } else if (strcmp(inputBuffer, "b") == 0) {
                 Serial.println("Running test B...");
                 // ...test B code...
 
-                packVoltage = readPackSense();
-                Serial.print( "\n Pack Voltage: ");
-                Serial.println(packVoltage);
 
-                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, true); // Enable the motor driver LP3943 on channel 7
-                delay(1000); // Wait for 1 second
+                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, true);
+                delay(1000);
 
-                packVoltage = readPackSense();
-                Serial.print( "\n Pack Voltage: ");
-                Serial.println(packVoltage);
 
             } else if (strcmp(inputBuffer, "c") == 0) {
                 Serial.println("Running test C...");
@@ -251,5 +271,4 @@ void loop() {
             inputBuffer[inputPos++] = inChar;
         }
     }
-
 }
