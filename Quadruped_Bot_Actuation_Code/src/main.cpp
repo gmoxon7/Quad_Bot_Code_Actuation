@@ -32,6 +32,7 @@
 #include "BMS_ReadCommands.h" // Include the BMS read commands header file
 #include "SetUpBMS.h" // Include the BMS setup header file
 
+#include "MotorDriver_LP3943.h" // Include the motor driver LP3943 header file
 
 
 #include <Wire.h>
@@ -44,11 +45,19 @@
 #define WIRE Wire1 // for teensy 4.0 this is the i2c library on pins 17(sda1) and 16(scl1)
 
 
-uint8_t I2C_MUX_ADDRESS = 0x70; //I2C address of the multiplexer write version increment for read version
+
+uint8_t MOTOR_DRIVER_DEFAULT_ADDRESS = 0x60; // Default I2C address for the LP3943 motor driver
 float degrees = 0; // Variable to store the encoder position
 
 uint8_t chipAddress = 0x49; // Replace with the actual I2C address of the L9961
 uint8_t registerAddress = 0x0; // checking vb value.
+
+float packVoltage = 0.0; // Variable to store the pack voltage
+
+
+//Testing Variables
+char inputBuffer[32];
+uint8_t inputPos = 0;
 
 // put setup code here, to run once:
 
@@ -115,6 +124,24 @@ delay(1000); //delay for the control board to initialize
   delay(10);
 
   I2C_DisableAllChannels(I2C_MUX_ADDRESS);
+  
+  motorDriverInit(0,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(1,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(2,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(3,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(4,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(5,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(6,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+  
+  motorDriverInit(7,MOTOR_DRIVER_DEFAULT_ADDRESS); // Initialize the motor driver LP3943
+
+
   resetEncoder(0);
   resetEncoder(1);
   resetEncoder(2);
@@ -136,6 +163,13 @@ delay(1000); //delay for the control board to initialize
   attachInterrupt(digitalPinToInterrupt(RDY), onBMSReadyRise, RISING);
 
   setBMSConversionState("CONVERSION_ON");  // To turn conversions ON
+
+  
+  delay(100); // Wait for the multiplexer to switch channels
+  
+
+  precharge(1); // Precharge with 1 capacitor
+
 }
 
 
@@ -143,103 +177,79 @@ delay(1000); //delay for the control board to initialize
 
 
 
+// Main loop function
+
 void loop() {
-    // Example: Switch to channel 5
-    //I2C_SelectChannel(0x70, 4);
-    //delay(2000);
-  
 
-    //Serial.print("\nI2C Multiplexer Channels: ");
-    //Serial.print(I2C_RD(0x70));
+  while (Serial.available() > 0) {
+        char inChar = Serial.read();
+        if (inChar == '\n' || inChar == '\r') {
+            inputBuffer[inputPos] = '\0'; // Null-terminate
 
-    // Example: Disable all channels
-    //I2C_DisableAllChannels(0x70);
-    
+            // Process the command
+            Serial.print("Received command: ");
+            Serial.println(inputBuffer);
 
+            // Parse "move" command with 4 arguments: move <mux_channel> <chip_address> <speed> <direction>
+            char cmd[8];
+            int mux_channel, chip_address, speed, directionInt;
+            if (sscanf(inputBuffer, "%s %d %d %d %d", cmd, &mux_channel, &chip_address, &speed, &directionInt) == 5) {
+                if (strcmp(cmd, "move") == 0) {
+                    bool direction = (directionInt != 0); // Convert int to bool
+                    variableMotionControl(mux_channel, chip_address, speed, direction);
+                    Serial.print("Moving motor on mux channel ");
+                    Serial.print(mux_channel);
+                    Serial.print(", chip address ");
+                    Serial.print(chip_address, HEX);
+                    Serial.print(", speed ");
+                    Serial.print(speed);
+                    Serial.print(", direction ");
+                    Serial.println(direction ? "true" : "false");
+                }
+            } else if (strcmp(inputBuffer, "abc") == 0) {
+                Serial.println("Running test for 'abc'!");
+            } else if (strcmp(inputBuffer, "a") == 0) {
+                Serial.println("Running test A...");
+                // ...test A code...
+                packVoltage = readPackSense();
+                Serial.print( "\n Pack Voltage: ");
+                Serial.println(packVoltage);
 
-  
-  //testing the SPI encoder 
-  //Read position from encoder on channel 0
+                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, false); // Enable the motor driver LP3943 on channel 7
+                delay(1000); // Wait for 1 second
 
+                packVoltage = readPackSense();
+                Serial.print( "\n Pack Voltage: ");
+                Serial.println(packVoltage);
 
-  // delay(3000); // Wait for 3 second
+            } else if (strcmp(inputBuffer, "b") == 0) {
+                Serial.println("Running test B...");
+                // ...test B code...
 
+                packVoltage = readPackSense();
+                Serial.print( "\n Pack Voltage: ");
+                Serial.println(packVoltage);
 
-  //   degrees = readEncoderPosition(0);
-  //   Serial.print("Encoder position on channel 0: ");
-  //   Serial.println(degrees);
+                motorDriverRegControl(7, MOTOR_DRIVER_DEFAULT_ADDRESS, true); // Enable the motor driver LP3943 on channel 7
+                delay(1000); // Wait for 1 second
 
-  //   delay(1000); // Wait for 5 second
-  
+                packVoltage = readPackSense();
+                Serial.print( "\n Pack Voltage: ");
+                Serial.println(packVoltage);
 
-  //   // Test turns counting on channel 0
-  //   int16_t turns = readTurns(0); // Read the number of turns on channel 0
-  //   Serial.print("Number of turns on channel 0: ");
-  //   Serial.println(turns);
+            } else if (strcmp(inputBuffer, "c") == 0) {
+                Serial.println("Running test C...");
+                // ...test C code...
+            } else {
+                Serial.println("Unknown command.");
+            }
 
-  //   delay(1000); // Wait for 5 second
-  
-  // float packVoltage = readPackSense();
-  // Serial.print( "\n Pack Voltage: ");
-  // Serial.println(packVoltage);
+            // Reset buffer
+            inputPos = 0;
+            inputBuffer[0] = '\0';
+        } else if (inputPos < sizeof(inputBuffer) - 1) {
+            inputBuffer[inputPos++] = inChar;
+        }
+    }
 
-  // precharge(1); // Precharge with 1 capacitor
-
-
-  // // Turn off the CHG pin
-  // setCHG(false);
-
-  // delay(5000); // Wait for 5 second
-  // Serial.print( "\n DSG pin state: OFF ");
-  // setDSG(LOW); // Turn off the DSG pin
-  // delay(1000); // Wait for 5 second
-
- 
-
-
-  // uint16_t mfgDate = readManufacturerDate();
-  // Serial.print("Manufacturer Date: 0x");
-  // Serial.println(mfgDate, HEX);
-  
-  
-  // delay(10); // Wait for the conversion to stabilize
-
-
-
-  // // Read and print the cell sum voltage only if data is valid
-  // if (isBMSDataValid()) {
-  //   float cellSum = readVCellSum();
-  //   Serial.print("BMS CellSum: ");
-  //   Serial.println(cellSum, 3); // Print with 3 decimal places
-  //   bmsDataReady = false; // Mark data as read
-
-  // } else {
-  //   Serial.println("BMS data expired, waiting for next conversion...");
-
-  float current = readCurrent();
-  Serial.print("BMS Current: ");
-  Serial.println(current, 3); // Print with 3 decimal places
-
-
-
-  // Read and print the coulomb counter result
-    CoulombCountResult cc = readCoulombCounter();
-    Serial.print("Coulombs: ");
-    Serial.println(cc.coulombs, 6); // Print with 6 decimal places
-    Serial.print("Sample Count: ");
-    Serial.println(cc.sampleCount);
-
-    delay(6000); // Adjust delay as needed
-    
-  // }
-
-
-
-
-
-
-  
-  
-
- }
-
+}

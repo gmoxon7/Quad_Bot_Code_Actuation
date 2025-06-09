@@ -19,6 +19,8 @@
 // Global variable to store the currently active channel
 static int8_t currentChannel = -1; // -1 indicates no channel is currently selected
 
+
+
 // Function to select a single channel on the PCA9548A I2C multiplexer
 void I2C_SelectChannel(uint8_t muxAddress, uint8_t channel) {
   // Validate the channel number (must be between 0 and 7)

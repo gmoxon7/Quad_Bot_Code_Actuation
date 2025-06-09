@@ -16,6 +16,9 @@
 
 //be sure to integrate interrupts for the BMS chip to ensure that the data is not being read while the chip is in conversion mode.
 
+float TotalCoulombs= 0.0f; // Variable to store the total coulombs counted
+unsigned int TotalSampleCount = 0; // Variable to store the number of samples taken
+
 
 //code to read cell voltages. 12bits across a range of 5V
 float readVCell1() {
@@ -115,10 +118,16 @@ CoulombCountResult readCoulombCounter() {
 
     uint8_t sampleCount = lsb_and_count & 0xFF;
 
+    TotalCoulombs += coulombs;
+    TotalCoulombs = roundf(TotalCoulombs * 100.0f) / 100.0f; // Round to 2 decimal places
+    TotalSampleCount += sampleCount;
     
     CoulombCountResult result;
     result.coulombs = coulombs;
     result.sampleCount = sampleCount;
+    result.totalCoulombs = TotalCoulombs;
+    result.totalSampleCount = TotalSampleCount;
+    
     return result;
 
     // Currently accurate to 0.005A over estimating sample. will need to test with larger load to see how much of an impact is causing.

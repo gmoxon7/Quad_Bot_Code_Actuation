@@ -33,6 +33,8 @@ uint8_t measureCycle = 31; // range 1-31, this is the number of conversion cycle
 float senseResistor = 0.008f; // 8 mΩ = 0.008 Ω (can be changed elsewhere)
 
 
+
+
 // Create a bitmask for the cell stack size (3-5 cells)
 uint8_t cellMask = ((1 << cellStackSize) - 1) & 0b11111; // e.g., 3 cells: 0b00111, 5 cells: 0b11111 capped at 5
 
@@ -71,6 +73,8 @@ const float VB_RES = 0.0061f; // 6.1mV
 const float VNTC_RES = 0.000806f; // 0.806mV
 
 int bmsConversionActive = 0; // 1 = ON, 0 = OFF This variable is used in the config and identity functions to keep track of if the measuring registers are changing.
+
+
 
 // Interrupt Service Routine for RDY positive edge
 void onBMSReadyRise() {

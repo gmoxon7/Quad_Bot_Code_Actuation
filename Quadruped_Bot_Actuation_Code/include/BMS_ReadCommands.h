@@ -43,6 +43,8 @@ float readCurrent();
 struct CoulombCountResult {
     float coulombs;
     uint8_t sampleCount;
+    float totalCoulombs;    // Total coulombs counted (global)
+    unsigned long totalSampleCount; // Total sample count (global)
 };
 
 // Read coulomb counter (returns struct)

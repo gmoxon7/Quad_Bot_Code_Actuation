@@ -15,6 +15,10 @@
 #define I2C_MUX_H
 
 #include <Arduino.h>
+#include <Wire.h> // Include the Wire library for I2C communication
+
+
+#define I2C_MUX_ADDRESS 0x70 // I2C address of the PCA9548A multiplexer
 
 // Function to select a single channel on the PCA9548A I2C multiplexer
 void I2C_SelectChannel(uint8_t muxAddress, uint8_t channel);
