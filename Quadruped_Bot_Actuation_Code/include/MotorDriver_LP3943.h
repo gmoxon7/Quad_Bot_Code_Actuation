@@ -35,8 +35,8 @@ void defaultMotionControl(uint8_t mux_channel, uint8_t address, uint8_t defaultS
 void motorDriverStop(uint8_t mux_channel, uint8_t address);
 
 
-int8_t readLimitTriggers(uint8_t address);
-int8_t readCurrentEstimate(uint8_t address);
+uint8_t readLimitTriggers(uint8_t mux_channel, uint8_t address);
+float readCurrentEstimate(uint8_t mux_channel, uint8_t address);
 
 
 #endif // MOTORDRIVER_LP3943_H

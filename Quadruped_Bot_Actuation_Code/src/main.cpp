@@ -260,6 +260,12 @@ void loop() {
             } else if (strcmp(inputBuffer, "c") == 0) {
                 Serial.println("Running test C...");
                 // ...test C code...
+
+                float current = readCurrentEstimate(7, MOTOR_DRIVER_DEFAULT_ADDRESS);
+                Serial.print("Current estimate: ");
+                Serial.print(current, 4); // Print with 4 decimal places
+                Serial.println(" A");
+
             } else {
                 Serial.println("Unknown command.");
             }

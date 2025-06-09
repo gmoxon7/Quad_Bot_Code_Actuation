@@ -50,6 +50,7 @@ void motorDriverRegControl(uint8_t mux_channel,uint8_t i2c_addr, bool enable) {
     // Enable or disable the motor driver by writing to the corresponding register
     if (enable) {
         I2C_WR(i2c_addr, 0X08, 0X15); // 0x15 is the value to enable the motor driver and the adc
+        I2C_WR(i2c_addr, 0X08, 0X05); // 0x15 is the value to enable the motor driver and the adc
     } else {
         I2C_WR(i2c_addr, 0X08, 0X00);
     }
@@ -75,8 +76,8 @@ void setMotionControl(uint8_t mux_channel, uint8_t i2c_addr, uint8_t speedOne, u
     I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel); // Select the appropriate channel on the I2C multiplexer
     
     // Set the speed for both motors
-    I2C_WR(i2c_addr, 0x03, speedOne); // Write speed to register 0x05 for motor one
-    I2C_WR(i2c_addr, 0x05, speedTwo); // Write speed to register 0x06 for motor two
+    I2C_WR(i2c_addr, 0x03, 255-speedOne); // Write speed to register 0x05 for motor one
+    I2C_WR(i2c_addr, 0x05, 255-speedTwo); // Write speed to register 0x06 for motor two
 }
 
 
@@ -119,3 +120,27 @@ void motorDriverStop(uint8_t mux_channel, uint8_t i2c_addr) {
     
 }
 
+
+
+uint8_t readLimitTriggers(uint8_t mux_channel, uint8_t i2c_addr) {
+
+    I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel); // Select the appropriate channel on the I2C multiplexer
+    
+    // Read the limit triggers from the motor driver
+    uint8_t limitTriggers = (0b00001111 & (I2C_RD(i2c_addr, 0x00))); // Read from register 0x0A (example register for limit triggers)
+    
+    return limitTriggers; // Return the read value
+}
+
+
+float readCurrentEstimate(uint8_t mux_channel, uint8_t i2c_addr) {
+    I2C_SelectChannel(I2C_MUX_ADDRESS, mux_channel);
+
+    // Read the current estimate from the motor driver (upper 4 bits of register 0x01)
+    uint8_t raw = (I2C_RD(i2c_addr, 0x01) & 0b11111000) >> 3;
+
+    // Scale to max current (0–15 maps to 0–6.1467A)
+    float current = (raw / 31.0f) * 6.1467f;
+
+    return current;
+}
