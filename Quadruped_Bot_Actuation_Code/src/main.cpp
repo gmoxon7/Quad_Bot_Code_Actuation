@@ -266,7 +266,12 @@ void loop() {
                 Serial.print(current, 4); // Print with 4 decimal places
                 Serial.println(" A");
 
-            } else {
+            } else if (strcmp(inputBuffer, "d") == 0) {
+                Serial.println("Running test D...");
+                // Read limit triggers from mux channel 7 and default address
+                uint8_t limits = readLimitTriggers(7, MOTOR_DRIVER_DEFAULT_ADDRESS);
+                Serial.print("Limit triggers: 0b");
+                Serial.println(limits, BIN); // Print as binaryelse {
                 Serial.println("Unknown command.");
             }
 

@@ -49,10 +49,10 @@ void motorDriverRegControl(uint8_t mux_channel,uint8_t i2c_addr, bool enable) {
     
     // Enable or disable the motor driver by writing to the corresponding register
     if (enable) {
-        I2C_WR(i2c_addr, 0X08, 0X15); // 0x15 is the value to enable the motor driver and the adc
-        I2C_WR(i2c_addr, 0X08, 0X05); // 0x15 is the value to enable the motor driver and the adc
+        I2C_WR(i2c_addr, 0X08, 0X15); // 0x15 is the value to enable the motor driver and the set up the adc
+        I2C_WR(i2c_addr, 0X08, 0X05); // 0x05 is the value to enable the motor driver and the adc
     } else {
-        I2C_WR(i2c_addr, 0X08, 0X00);
+        I2C_WR(i2c_addr, 0X08, 0X00); // 0x00 is the value to disable the motor driver reg and adc.
     }
 }
 
@@ -87,13 +87,13 @@ void defaultMotionControl(uint8_t mux_channel, uint8_t i2c_addr, uint8_t speedLe
     // Set speed bits (MSBs)
     uint8_t speedBits = 0;
     if (speedLevel == 3) {
-        speedBits = 0b00000000;
+        speedBits = 0b00000000; // sets pwm on at 100% duty cycle
     } else if (speedLevel == 2) {
-        speedBits = 0b11000000;
+        speedBits = 0b11000000; // sets pwm on at PWM1 duty cycle
     } else if (speedLevel == 1) {
-        speedBits = 0b10000000;
+        speedBits = 0b10000000; // sets pwm on at PWM0 duty cycle 
     } else {
-        speedBits = 0b01000000; // Or set a default/fault value if needed
+        speedBits = 0b01000000; // sets pwm off
     }
 
     // Set direction code (6 LSBs)
